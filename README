@@ -1,0 +1,28 @@
+HTML 기반 웹 뷰어
+
+
+개요
+
+이 소프트웨어는 HTML 기반의 웹 뷰어입니다.
+자신의 웹 사이트에 웹 뷰어를 포함시켜 서버에 저장되어있는 문서를 바로 열람할 수 있습니다.
+
+
+외부 라이브러리
+
+PDF를 이미지로 변환하기위해 MuPDF(SumatraPDF의 인쇄 기능 일부를 합친, 몇 가지 추가 패치가 적용된)를 사용하고 있습니다.
+
+
+개발환경
+
+Spring Tool Suite 3.7과 Visual Studio Community 2013을 사용하였습니다.
+
+
+컴파일 및 인스톨
+
+server와 localservice 디렉토리 내의 README를 참고하시기 바랍니다.
+
+
+라이선스
+
+이 소프트웨어는 AGPL(GNU AFFERO GENERAL PUBLIC LICENSE)을 따릅니다.
+외부 라이브러리는 해당 소프트웨어의 라이센스 정책을 따릅니다.

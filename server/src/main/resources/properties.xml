@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<comment>문서 저장소 설정</comment>
+
+	<entry key="doc.org.path">C:/GitHub/workspace/doc</entry>
+	<entry key="doc.cache.path">C:/GitHub/workspace/cache</entry>
+
+	<entry key="max.waiting.millis">30000</entry>
+	<entry key="converter.path">C:/GitHub/workspace/bin</entry>
+</properties>
