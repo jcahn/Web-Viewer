@@ -1,0 +1,187 @@
+@charset "UTF-8";
+
+* {
+	font-family:돋움, Dotum;
+	margin:0;
+	padding:0;
+}
+html, body {
+	height:100%;
+	width:100%;
+}
+body {
+	overflow:hidden;
+	visibility:hidden;
+}
+a {
+	color:#fff;
+	font-size:12px;
+	font-weight:bold;
+	text-decoration:none;
+}
+#menuBar {
+	/*background-color:rgb(43,43,45);*/
+	background-color:rgb(220,220,222);
+	height:40px;
+	overflow:hidden;
+	width:100%;
+}
+#menuBar a {
+	display:block;
+	float:left;
+	height:40px;
+	width:40px;
+}
+#menuBar a img {
+	height:24px;
+	margin-left:8px;
+	margin-top:8px;
+	width:24px;
+}
+#menuBar a.over {
+	background-color:rgb(200,200,202);
+}
+#menuBar a.click {
+	border-bottom:2px solid rgb(0,163,224);
+	height:38px;
+}
+#menuBar p {
+	display:block;
+	float:left;
+	font-size:12px;
+	margin-top:13px;
+}
+#menuBar p.split {
+	height:26px;
+	border-left:1px solid rgb(210,210,212);
+	border-right:1px solid rgb(230,230,232);
+	margin:7px 10px 0 10px;
+}
+#menuBar input {
+	display:block;
+	float:left;
+	border:1px solid rgb(100,100,100);
+	padding:4px;
+	margin-top:7px;
+}
+#toc {
+	background-color:rgb(234,234,235);
+	border-right:1px solid rgb(227,227,228);
+	border-top:2px solid rgb(0,163,224);
+	position:absolute;
+	width:250px;
+}
+#stage {
+	overflow:hidden;
+	position:absolute;
+}
+#stage canvas {
+	position:absolute;
+}
+#stage .scroll {
+	border:1px solid #e0e0e0;
+	display:none;
+	position:absolute;
+}
+#stage .scroll.x {
+	bottom:3px;
+	height:15px;
+	left:17px;
+}
+#stage .scroll.y {
+	right:3px;
+	top:17px;
+	width:15px;
+}
+#stage .scroll .up {
+	background-image:url(/img/scroll/up.png);
+	height:8px;
+	position:absolute;
+	right:3px;
+	top:-13px;
+	width:9px;
+}
+#stage .scroll .down {
+	background-image:url(/img/scroll/down.png);
+	bottom:-13px;
+	height:8px;
+	position:absolute;
+	right:3px;
+	width:9px;
+}
+#stage .scroll .left {
+	background-image:url(/img/scroll/left.png);
+	height:9px;
+	left:-13px;
+	position:absolute;
+	top:3px;
+	width:8px;
+}
+#stage .scroll .right {
+	background-image:url(/img/scroll/right.png);
+	height:9px;
+	position:absolute;
+	right:-13px;
+	top:3px;
+	width:8px;
+}
+#stage .scroll .bar {
+	background-color:#a0a0a0;
+	opacity:0.8;
+	position:absolute;
+}
+#stage .scroll .bar.x {
+	height:100%;
+}
+#stage .scroll .bar.y {
+	width:100%;
+}
+#stage .move {
+	background-color:rgb(187,187,187);
+	background-position-x:16px;
+	background-repeat:no-repeat;
+	opacity:0.1;
+	position:absolute;
+	top:30px;
+	width:60px;
+}
+#stage .move.prev {
+	background-image:url(/img/stage/prev.png);
+	border-radius:8px 0 0 8px;
+	left:35px;
+}
+#stage .move.next {
+	background-image:url(/img/stage/next.png);
+	border-radius:0 8px 8px 0;
+	right:35px;
+}
+#stage .move a {
+	display:block;
+	height:100%;
+	width:100%;
+}
+#loading {
+	display:none;
+	left:50%;
+	margin-left:-40px;
+	margin-top:-10px;
+	position:absolute;
+	top:50%;
+}
+#loading .ball {
+	border:10px solid rgb(130,0,0);
+	border-radius:50%;
+	position:absolute;
+}
+#loading #ball1 {
+	left:0;
+}
+#loading #ball2 {
+	left:20px;
+}
+#loading #ball3 {
+	left:40px;
+}
+#loading #ball4 {
+	left:60px;
+}

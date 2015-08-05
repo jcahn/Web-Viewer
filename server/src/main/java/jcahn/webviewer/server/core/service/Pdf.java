@@ -1,20 +1,20 @@
-package jcahn.webviewer.server.core.converter;
+package jcahn.webviewer.server.core.service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class Pdf {
 
-	@Value("#{properties['doc.org.path']}")
-	private String docOrgPath;
+	@Autowired
+	Storage storage;
 
 	@Value("#{properties['converter.path']}")
 	private String converterPath;
@@ -34,7 +34,9 @@ public class Pdf {
 		command.add(this.converterPath + "/mutool.exe");
 		command.add("info");
 		command.add("-M");
-		command.add(this.docOrgPath + "/" + id + ".pdf");
+		command.add(storage.originalPath(id));
+
+		this.logger.debug("command: " + command.toString());
 
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
 
@@ -90,6 +92,8 @@ public class Pdf {
 			}
 			catch (Exception e) {}
 		}
+
+		this.logger.debug("pdf info\npages: " + info.pages + "\nwidth: " + info.width + "\nheight: " + info.height);
 
 		return info;
 	}
