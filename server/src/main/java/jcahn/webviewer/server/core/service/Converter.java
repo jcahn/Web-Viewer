@@ -8,6 +8,7 @@ import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.servlet.ServletOutputStream;
+import jcahn.webviewer.server.core.Dimension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +105,7 @@ public class Converter {
 		return cachePath;
 	}
 
-	public String dimension(String filePath) {
+	public Dimension dimension(String filePath) {
 
 		ArrayList<String> command = new ArrayList<String>();
 
@@ -161,21 +162,33 @@ public class Converter {
 		}
 
 		String[] token = geometry.split("x");
+		Dimension dimension = new Dimension();
 
-		int width = Integer.parseInt(token[0]) / 3;
-		int height = Integer.parseInt(token[1]) / 3;
+		dimension.width = Integer.parseInt(token[0]) / 3;
+		dimension.height = Integer.parseInt(token[1]) / 3;
 
-		this.logger.debug("dimension: " + width + "x" + height);
+		this.logger.debug("dimension: " + dimension.width + "x" + dimension.height);
 
-		return width + "x" + height;
+		return dimension;
 	}
 
-	public void resize(String id, String page, int width, int height, ServletOutputStream output) {
+	public void resize(String filePath, int scale, ServletOutputStream output) {
+
+		if (scale < 50) {
+			scale = 50;
+		}
+		else if (scale > 300) {
+			scale = 300;
+		}
+
+		Dimension dimension = this.dimension(filePath);
+		int width = dimension.width * scale / 100;
+		int height = dimension.height * scale / 100;
 
 		ArrayList<String> command = new ArrayList<String>();
 
 		command.add(this.converterPath + "/convert.exe");
-		command.add(storage.cachePath(id, page));
+		command.add(filePath);
 		command.add("-resize");
 		command.add(width + "x" + height);
 		command.add("-");
@@ -205,7 +218,7 @@ public class Converter {
 			process.waitFor();
 		}
 		catch (Exception e) {
-			this.logger.debug("\nresize 작업 오류 발생;\nfile: " + storage.cachePath(id, page) + "\nconvert 실행 오류.");
+			this.logger.debug("\nresize 작업 오류 발생;\nfile: " + filePath + "\nconvert 실행 오류.");
 		}
 		finally {
 			try {

@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
+import jcahn.webviewer.server.core.Dimension;
+import jcahn.webviewer.server.core.PdfInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,17 +25,10 @@ public class Pdf {
 
 	public PdfInfo info(String id) {
 
-		PdfInfo info = new PdfInfo();
-
-		info.pages = 0;
-		info.width = 0;
-		info.height = 0;
-
 		ArrayList<String> command = new ArrayList<String>();
 
 		command.add(this.converterPath + "/mutool.exe");
-		command.add("info");
-		command.add("-M");
+		command.add("pages");
 		command.add(storage.originalPath(id));
 
 		this.logger.debug("command: " + command.toString());
@@ -44,6 +39,7 @@ public class Pdf {
 
 		InputStreamReader input = null;
 		BufferedReader reader = null;
+		PdfInfo info = new PdfInfo();
 
 		try {
 			Process process = processBuilder.start();
@@ -58,17 +54,16 @@ public class Pdf {
 					break;
 				}
 
-				if (line.startsWith("Pages:")) {
-					info.pages = Integer.parseInt(line.substring(7));
-				}
+				if (line.startsWith("<MediaBox ")) {
+					String[] tokenList = line.split(" ");
 
-				if (line.indexOf('[') != -1 && info.pages != 0) {
-					String[] tokenList = line.substring(line.indexOf('[') + 2, line.indexOf(']') - 1).split(" ");
+					Dimension dimension = new Dimension();
 
-					info.width = (int)Math.ceil(Double.parseDouble(tokenList[2]) - Double.parseDouble(tokenList[0]));
-					info.height = (int)Math.ceil(Double.parseDouble(tokenList[3]) - Double.parseDouble(tokenList[1]));
+					dimension.width = (int)(Double.parseDouble(tokenList[3].replaceAll("\"", "").substring(2)) - Double.parseDouble(tokenList[1].replaceAll("\"", "").substring(2)));
+					dimension.height = (int)(Double.parseDouble(tokenList[4].replaceAll("\"", "").substring(2)) - Double.parseDouble(tokenList[2].replaceAll("\"", "").substring(2)));
 
-					break;
+					info.pages++;
+					info.dimensionList.add(dimension);
 				}
 			}
 
@@ -77,9 +72,7 @@ public class Pdf {
 		catch (Exception e) {
 			this.logger.debug("\ninfo 작업 오류 발생;\nid: " + id + "\nmutool 실행 오류.");
 
-			info.pages = 0;
-			info.width = 0;
-			info.height = 0;
+			info = new PdfInfo();
 		}
 		finally {
 			try {
@@ -93,15 +86,8 @@ public class Pdf {
 			catch (Exception e) {}
 		}
 
-		this.logger.debug("pdf info\npages: " + info.pages + "\nwidth: " + info.width + "\nheight: " + info.height);
+		this.logger.debug("pdf info\npages: " + info.pages);
 
 		return info;
-	}
-
-	public class PdfInfo {
-
-		public int pages = 0;
-		public int width = 0;
-		public int height = 0;
 	}
 }

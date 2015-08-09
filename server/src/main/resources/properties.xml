@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-	<comment>문서 저장소 설정</comment>
+	<comment/>
 
+	<!-- 문서 저장소 설정 -->
 	<entry key="doc.org.path">C:/GitHub/workspace/doc</entry>
 	<entry key="doc.cache.path">C:/GitHub/workspace/cache</entry>
 
-	<entry key="max.waiting.millis">30000</entry>
+	<!-- 변환 및 전송 설정 -->
 	<entry key="converter.path">C:/GitHub/workspace/bin</entry>
+	<entry key="max.waiting.millis">30000</entry>
+
+	<!-- 뷰어 기본 설정 -->
+	<entry key="viewer.page.type">1page</entry>
+	<entry key="viewer.fill.type">height</entry>
+	<entry key="viewer.hq.on">true</entry>
 </properties>
