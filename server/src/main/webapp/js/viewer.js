@@ -33,20 +33,18 @@ var $pageRetry;
 var $loadingOn = false;
 var $animation;
 var $rotate = 0;
+var $hqImage;
+var $hqTimer;
+var $hqLoad;
+var $hqCurrent;
+var $hqScale;
+var $hqRetry;
 var $dragOn = false;
 var $dragX = 0;
 var $dragY = 0;
-
-
-
-
-var $hqTimer;
-var $hqLoad;
-
-
-
 var $pivotX;
 var $pivotY;
+
 
 	var $mediaWidth;
 	var $mediaWeight;
@@ -469,7 +467,7 @@ function _Resize() {
 			$next.style.display = "none";
 		}
 
-		if (scale != imageScale) {
+		if (scale != imageScale && scale <= 300) {
 			if ($hqOn == true) {
 				if ($hqTimer != undefined) {
 					clearTimeout($hqTimer);
@@ -552,43 +550,47 @@ function _Resize() {
 	*/
 }
 
-/*
-function _clear() {
-	if (loaded != true) {
-		timer = setTimeout(_clear, 1);
+function _Hq() {
+	if ($pageLoad != true && $hqLoad == false) {
+		setTimeout(_Hq, 1);
 
 		return;
 	}
 
-	clearCurrent = displayCurrent.value;
-	clearScale = displayScale.value;
-	clearImage.src = "/get.do?id=" + id + "&p=" + clearCurrent + "&w=" + parseInt(image.width * displayScale.value / scale) + "&h=" + parseInt(image.height * displayScale.value / scale);
-	clearRetry = 0;
+	$hqLoad = false;
 
-	timer = setTimeout(_clearCallback, 1);
+	$hqCurrent = $pageCurrent;
+	$hqScale = _CalcScale($pageCurrent);
+	$hqRetry = 0;
+	
+	$hqImage = new Image();
+	$hqImage.src = "/get.do?id=" + $id + "&p=" + $pageCurrent + "&s=" + $hqScale;
+
+	setTimeout(_HqCallback, 1);
 }
 
-function _clearCallback() {
-	if (clearImage.complete == true) {
-		if (clearCurrent != displayCurrent.value) {
-			return;
+function _HqCallback() {
+	if ($hqImage.complete == true) {
+		$hqLoad = true;
+
+		if ($hqCurrent != $pageCurrent || $hqScale != _CalcScale($pageCurrent)) {
+			_Hq();
 		}
 		else {
-			scale = clearScale;
-			image = clearImage;
+			$image[$pageCurrent] = $hqImage;
+			$imageScale[$pageCurrent] = $hqScale;
 
-			_resize();
+			_Resize();
 		}
 	}
 	else {
-		clearRetry++;
+		$hqRetry++;
 
-		if (clearRetry < 30000) {
-			timer = setTimeout(_clearCallback, 1);
+		if ($hqRetry < 30000) {
+			setTimeout(_HqCallback, 1);
 		}
 	}
 }
-*/
 
 function _Keyword(type) {
 	if (type == "on") {

@@ -11,8 +11,6 @@
 	String viewerFillType = (String)request.getAttribute("viewerFillType");
 	boolean viewerHqOn = (Boolean)request.getAttribute("viewerHqOn");
 	@SuppressWarnings("unchecked") ArrayList<ArrayList<String>> tocList = (ArrayList<ArrayList<String>>)request.getAttribute("tocList"); // {[0] - 제목, [1] - 페이지} 반복
-	
-	viewerHqOn = false;
 %>
 <%out.clear();%><!DOCTYPE html>
 <html>
