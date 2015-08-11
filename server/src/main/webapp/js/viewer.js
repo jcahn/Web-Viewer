@@ -319,7 +319,10 @@ function _Resize() {
 
 		if (canvas == undefined) {
 			canvas = document.createElement("canvas");
-
+			canvas.addEventListener("mousedown", function() {_Drag('start');});
+			canvas.addEventListener("mousemove", function() {_Drag('move');});
+			canvas.addEventListener("mouseup", function() {_Drag('stop');});
+				 
 			$1page.appendChild(canvas);
 		}
 
@@ -450,6 +453,9 @@ function _Resize() {
 
 		if (leftCanvas == undefined) {
 			leftCanvas = document.createElement("canvas");
+			leftCanvas.addEventListener("mousedown", function() {_Drag('start');});
+			leftCanvas.addEventListener("mousemove", function() {_Drag('move');});
+			leftCanvas.addEventListener("mouseup", function() {_Drag('stop');});
 
 			$2pages.appendChild(leftCanvas);
 		}
@@ -465,6 +471,9 @@ function _Resize() {
 
 			if (rightCanvas == undefined) {
 				rightCanvas = document.createElement("canvas");
+				rightCanvas.addEventListener("mousedown", function() {_Drag('start');});
+				rightCanvas.addEventListener("mousemove", function() {_Drag('move');});
+				rightCanvas.addEventListener("mouseup", function() {_Drag('stop');});
 
 				$2pages.appendChild(rightCanvas);
 			}
@@ -693,7 +702,7 @@ function _Drag(action) {
 	var event = event ? event : window.event;
 
 	if (action == "start") {
-		var target = event.currentTarget != undefined ? event.currentTarget : event.srcElement;
+		var target = (event.currentTarget != undefined ? event.currentTarget : event.srcElement).parentNode;
 
 		if (target.id == "1page" || target.id == "2pages") {
 			$dragOn = true;

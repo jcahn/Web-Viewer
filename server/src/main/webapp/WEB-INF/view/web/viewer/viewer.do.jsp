@@ -67,9 +67,9 @@
 <%}%>
 		</div>
 		<div id="Stage" onmousewheel="_Wheel('stage', -event.wheelDelta);">
-			<div id="1page" onmousedown="_Drag('start');" onmousemove="_Drag('move');" onmouseup="_Drag('stop');"></div>
-			<div id="2pages" onmousedown="_Drag('start');" onmousemove="_Drag('move');" onmouseup="_Drag('stop');"><canvas></canvas><canvas></canvas></div>
-			<div id="Continue" onmousedown="_Drag('start');" onmousemove="_Drag('move');" onmouseup="_Drag('stop');">
+			<div id="1page"></div>
+			<div id="2pages"></div>
+			<div id="Continue">
 <%for (int i = 0, size = pdfInfo.dimensionList.size(); i < size; i++) {%>
 				<div id="Page<%=i + 1%>"></div>
 <%}%>
