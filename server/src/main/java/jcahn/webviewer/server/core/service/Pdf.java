@@ -18,8 +18,8 @@ public class Pdf {
 	@Autowired
 	Storage storage;
 
-	@Value("#{properties['converter.path']}")
-	private String converterPath;
+	@Value("#{properties['bin.mutool.path']}")
+	private String mutoolPath;
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -27,7 +27,7 @@ public class Pdf {
 
 		ArrayList<String> command = new ArrayList<String>();
 
-		command.add(this.converterPath + "/mutool.exe");
+		command.add(this.mutoolPath);
 		command.add("pages");
 		command.add(storage.originalPath(id));
 

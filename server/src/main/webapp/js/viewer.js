@@ -33,7 +33,7 @@ var $pageRetry;
 var $loadingOn = false;
 var $animation;
 var $rotate = 0;
-var $hqImage;
+var $hqImage = new Array();
 var $hqTimer;
 var $hqLoad;
 var $hqCurrent;
@@ -45,35 +45,8 @@ var $dragY = 0;
 var $pivotX;
 var $pivotY;
 
-
 	var $mediaWidth;
 	var $mediaWeight;
-
-
-
-
-
-
-
-var showPrint = false;
-var showTts = false;
-var current;
-var scale;
-var imageWidth;
-var imageHeight;
-var loaded;
-
-var opacity;
-var clearImage = new Image();
-var clearCurrent;
-var clearScale;
-var clearRetry;
-var timer;
-
-
-
-
-
 
 try {
 	window.addEventListener("load", _Init);
@@ -105,13 +78,14 @@ function _Init() {
 		}
 
 		var tocWidth = $tocOn == true ? $toc.clientWidth + 1 : 0;
-		var menuBarHeight = $menuBar.clientHeight;
+		var stageHeight = $body.clientHeight - $menuBar.clientHeight;
 
 		$toc.style.display = $tocOn == true ? "block" : "none";
-		$stage.style.top = $toc.style.top = menuBarHeight + "px";
+		$toc.style.height = stageHeight + "px";
+		$stage.style.top = $toc.style.top = $menuBar.clientHeight + "px";
 		$stage.style.left = tocWidth + "px";
 		$stage.style.width = ($body.clientWidth - tocWidth) + "px";
-		$stage.style.height = ($body.clientHeight - menuBarHeight) + "px";
+		$stage.style.height = stageHeight + "px";
 		if ($tocOn == true) {
 			$tocButton.className = "click";
 		}
@@ -136,7 +110,7 @@ function _Init() {
 		if ($hqOn == true) {
 			$hqButton.className = "click";
 		}
-		$displayScale.value = $fillType == "fixed" ? 100 : $fillType;
+		$displayScale.value = $fillType == "fixed" ? "100" : $fillType;
 
 		$body.style.visibility = "visible";
 
@@ -189,6 +163,12 @@ function _Load(pageNo) {
 		$pivotX = 0;
 		$pivotY = 0;
 
+		var canvasList = $2pages.getElementsByTagName("canvas");
+
+		while (canvasList.length > 0) {
+			$2pages.removeChild(canvasList[0]);
+		}
+
 		var scale = _CalcScale(pageNo);
 
 		if ($image[pageNo] == undefined || $imageScale[pageNo] != scale) {
@@ -203,8 +183,6 @@ function _Load(pageNo) {
 		var pageNext = pageNo + 1;
 
 		if (pageNext <= $total) {
-			scale = _CalcScale(pageNext);
-
 			if ($image[pageNext] == undefined || $imageScale[pageNext] != scale) {
 				if ($image[pageNext] == undefined) {
 					$image[pageNext] = new Image();
@@ -215,30 +193,21 @@ function _Load(pageNo) {
 			}
 		}
 
-		pageNext = pageNo - 2;
-
-		if (pageNext >= 1) {
-			$preload.src = "/preload.do?id=" + $id + "&p=" + pageNext;
+		if (pageNo >= 3) {
+			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNo - 2);
 		}
-		if (pageNext + 1 >= 1) {
-			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNext + 1);
+		if (pageNo >= 2) {
+			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNo - 1);
 		}
-		if (pageNext + 4 <= $total) {
-			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNext + 4);
+		if (pageNo + 2 <= $total) {
+			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNo + 2);
 		}
-		if (pageNext + 5 <= $total) {
-			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNext + 5);
+		if (pageNo + 3 <= $total) {
+			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNo + 3);
 		}
 	}
-	else if ($pageType == "continue") {
-		// TODO: 구현해야 함
-		var canvasList = $stage.getElementsByTagName("canvas");
-
-		if (canvasList.length > 0) {
-			for (var i = 0; i < canvasList.length; i++) {
-				canvasList[i].parentNode.removaChild(canvasList[i]);
-			}
-		}
+	else {
+		// TODO:
 	}
 
 	$pageRetry = 0;
@@ -255,19 +224,19 @@ function _LoadCallback() {
 		}
 	}
 	else if ($pageType == "2pages") {
-		if ($image[$pageCurrent].complete == true && ($pageCurrent + 1 > $total || $image[$pageCurrent + 1].complete == true)) {
+		if ($image[$pageCurrent].complete == true && ($pageCurrent == $total || $image[$pageCurrent + 1].complete == true)) {
 			complete = true;
 		}
 	}
-	else if ($pageType == "continue") {
-		// TODO: 구현해야 함
+	else {
+		// TODO:
 	}
 
 	if (complete == true) {
 		$pageLoad = true;
 
 		if ($pageCurrent != $displayCurrent.value) {
-			_Load($displayCurrent.value);
+			_Load(parseInt($displayCurrent.value));
 		}
 		else {
 			_Resize();
@@ -277,9 +246,7 @@ function _LoadCallback() {
 		$pageRetry++;
 
 		if ($pageRetry >= 30000) {
-			// TODO: 닫기 버튼 없는 레이어드 경고창 띄우고 종료 처리
-
-			alert("페이지 가져오기에 실패하였습니다.\n\n- 변환 서버에 장애가 발생하였습니다.\n\n관리자에게 문의하시기 바랍니다.\n\n02-788-4150");
+			alert("페이지 가져오기에 실패하였습니다.\n\n- 변환 서버에 장애가 발생하였습니다.\n\n관리자에게 문의하시기 바랍니다.");
 		}
 		else {
 			setTimeout(_LoadCallback, 1);
@@ -348,13 +315,12 @@ function _Resize() {
 	if ($pageType == "1page") {
 		var image = $image[$pageCurrent];
 		var imageScale = $imageScale[$pageCurrent];
-		var page = document.getElementById("1page");
-		var canvas = page.getElementsByTagName("canvas")[0];
+		var canvas = $1page.getElementsByTagName("canvas")[0];
 
 		if (canvas == undefined) {
 			canvas = document.createElement("canvas");
 
-			page.appendChild(canvas);
+			$1page.appendChild(canvas);
 		}
 
 		var scale = _CalcScale($pageCurrent);
@@ -362,8 +328,8 @@ function _Resize() {
 		var pageWidth = parseInt(($rotate == 0 || $rotate == 180 ? image.width : image.height) * scale / imageScale);
 		var pageHeight = parseInt(($rotate == 0 || $rotate == 180 ? image.height : image.width) * scale / imageScale);
 
-		page.style.width = pageWidth + "px";
-		page.style.height = pageHeight + "px";
+		$1page.style.width = pageWidth + "px";
+		$1page.style.height = pageHeight + "px";
 
 		var deltaWidth = stageWidth - pageWidth;
 		var deltaHeight = stageHeight - pageHeight;
@@ -380,7 +346,7 @@ function _Resize() {
 				left = 0;
 			}
 			else {
-				left = $pivotX * scale / 100;
+				left = parseInt($pivotX * scale / 100);
 
 				if (left < stageWidth - pageWidth) {
 					left = stageWidth - pageWidth;
@@ -398,7 +364,7 @@ function _Resize() {
 				top = 0;
 			}
 			else {
-				top = $pivotY * scale / 100;
+				top = parseInt($pivotY * scale / 100);
 
 				if (top < stageHeight - pageHeight) {
 					top = stageHeight - pageHeight;
@@ -415,22 +381,22 @@ function _Resize() {
 			context.drawImage(image, 0, 0, pageWidth, pageHeight);
 		}
 		else {
-			context.translate(pageWidth / 2, pageHeight / 2);
+			context.translate(parseInt(pageWidth / 2), parseInt(pageHeight / 2));
 			context.rotate($rotate * Math.PI / 180);
-			context.drawImage(image, -($rotate == 180 ? pageWidth : pageHeight) / 2, -($rotate == 180 ? pageHeight : pageWidth) / 2, $rotate == 180 ? pageWidth : pageHeight, $rotate == 180 ? pageHeight : pageWidth);
+			context.drawImage(image, -parseInt(($rotate == 180 ? pageWidth : pageHeight) / 2), -parseInt(($rotate == 180 ? pageHeight : pageWidth) / 2), $rotate == 180 ? pageWidth : pageHeight, $rotate == 180 ? pageHeight : pageWidth);
 		}
 
-		page.style.marginLeft = left + "px";
-		page.style.marginTop = top + "px";
+		$1page.style.marginLeft = left + "px";
+		$1page.style.marginTop = top + "px";
 
 		if (pageWidth > stageWidth) {
-			var scrollWidth = stageWidth - (pageHeight > stageHeight ? 15 : 10);;
+			var scrollWidth = stageWidth - (pageHeight > stageHeight ? 15 : 10);
 
 			$scrollX.style.width =  scrollWidth + "px";
 			$scrollX.style.display = "block";
 
 			$barX.style.width = parseInt(stageWidth * scrollWidth / pageWidth) + "px";
-			$barX.style.marginLeft = parseInt(-left * scrollWidth / pageWidth) + "px";
+			$barX.style.marginLeft = -parseInt(left * scrollWidth / pageWidth) + "px";
 		}
 		else {
 			$scrollX.style.display = "none";
@@ -443,7 +409,7 @@ function _Resize() {
 			$scrollY.style.display = "block";
 
 			$barY.style.height = parseInt(stageHeight * scrollHeight / pageHeight) + "px";
-			$barY.style.marginTop = parseInt(-top * scrollHeight / pageHeight) + "px";
+			$barY.style.marginTop = -parseInt(top * scrollHeight / pageHeight) + "px";
 		}
 		else {
 			$scrollY.style.display = "none";
@@ -454,12 +420,12 @@ function _Resize() {
 
 			$prev.style.height = height + "px";
 			$prev.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
-			$prev.style.left = page.offsetLeft > 90 ? (page.offsetLeft - 60) + "px" : "30px";
+			$prev.style.left = $1page.offsetLeft > 90 ? ($1page.offsetLeft - 60) + "px" : "30px";
 			$prev.style.display = $pageCurrent > 1 ? "block" : "none";
 
 			$next.style.height = height + "px";
 			$next.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
-			$next.style.right = stageWidth - (page.offsetLeft + pageWidth) > 90 ? (stageWidth - (page.offsetLeft + pageWidth) - 60) + "px" : "30px";
+			$next.style.right = stageWidth - ($1page.offsetLeft + pageWidth) > 90 ? (stageWidth - ($1page.offsetLeft + pageWidth) - 60) + "px" : "30px";
 			$next.style.display = $pageCurrent < $total ? "block" : "none";
 		}
 		else {
@@ -478,76 +444,184 @@ function _Resize() {
 		}
 	}
 	else if ($pageType == "2pages") {
+		var leftImage = $image[$pageCurrent];
+		var leftImageScale = $imageScale[$pageCurrent];
+		var leftCanvas = $2pages.getElementsByTagName("canvas")[0];
 
-	}
-	else if ($pageType == "continue") {
+		if (leftCanvas == undefined) {
+			leftCanvas = document.createElement("canvas");
 
-	}
+			$2pages.appendChild(leftCanvas);
+		}
 
-	
-	
-	
-	
-	
-	
-/*
-	if (pageWidth > stageWidth) {
-		var scrollWidth = stageWidth - (pageHeight > stageHeight ? 53 : 36);
+		var rightImage;
+		var rightImage;
+		var rightCanvas;
 
-		scrollX.style.width =  scrollWidth + "px";
-		scrollX.style.display = "block";
+		if ($pageCurrent < $total) {
+			rightImage = $image[$pageCurrent + 1];
+			rightImageScale = $imageScale[$pageCurrent + 1];
+			rightCanvas = $2pages.getElementsByTagName("canvas")[1];
 
-		barX.style.width = parseInt(stageWidth * scrollWidth / pageWidth) + "px";
-		barX.style.marginLeft = parseInt(-left * scrollWidth / pageWidth) + "px";
-	}
-	else {
-		scrollX.style.display = "none";
-	}
+			if (rightCanvas == undefined) {
+				rightCanvas = document.createElement("canvas");
 
-	if (pageHeight > stageHeight) {
-		var scrollHeight = stageHeight - (pageWidth > stageWidth ? 53 : 36);
-
-		scrollY.style.height = scrollHeight + "px";
-		scrollY.style.display = "block";
-
-		barY.style.height = parseInt(stageHeight * scrollHeight / pageHeight) + "px";
-		barY.style.marginTop = parseInt(-top * scrollHeight / pageHeight) + "px";
-	}
-	else {
-		scrollY.style.display = "none";
-	}
-
-	if (stageHeight > 100) {
-		var height = stageHeight - 60;
-
-		prev.style.height = height + "px";
-		prev.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
-		prev.style.left = page.offsetLeft > 90 ? (page.offsetLeft - 60) + "px" : "30px";
-		prev.style.display = current > 1 ? "block" : "none";
-
-		next.style.height = height + "px";
-		next.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
-		next.style.right = stageWidth - (page.offsetLeft + pageWidth) > 90 ? (stageWidth - (page.offsetLeft + pageWidth) - 60) + "px" : "30px";
-		next.style.display = current < total ? "block" : "none";
-	}
-	else {
-		prev.style.display = "none";
-		next.style.display = "none";
-	}
-
-	if (scale != newScale) {
-		if (hq == true) {
-			if (timer != undefined) {
-				clearTimeout(timer);
+				$2pages.appendChild(rightCanvas);
 			}
+		}
 
-			timer = setTimeout(_clear, 300);
+		var scale = _CalcScale($pageCurrent);
+
+		var leftCanvasWidth = parseInt(($rotate == 0 || $rotate == 180 ? leftImage.width : leftImage.height) * scale / leftImageScale);
+		var leftCanvasHeight = parseInt(($rotate == 0 || $rotate == 180 ? leftImage.height : leftImage.width) * scale / leftImageScale);
+		var rightCanvasWidth = $pageCurrent < $total ? parseInt(($rotate == 0 || $rotate == 180 ? rightImage.width : rightImage.height) * scale / rightImageScale) : 0;
+		var rightCanvasHeight = $pageCurrent < $total ? parseInt(($rotate == 0 || $rotate == 180 ? rightImage.height : rightImage.width) * scale / rightImageScale) : 0;
+		var pageWidth = leftCanvasWidth + rightCanvasWidth;
+		var pageHeight = Math.max(leftCanvasHeight, rightCanvasHeight);
+
+		$2pages.style.width = pageWidth + "px";
+		$2pages.style.height = pageHeight + "px";
+
+		var deltaWidth = stageWidth - pageWidth;
+		var deltaHeight = stageHeight - pageHeight;
+		var left;
+		var top;
+
+		if (deltaWidth >= 0) {
+			left = parseInt(deltaWidth / 2);
+
+			$pivotX = 0;
 		}
 		else {
-			scale = newScale;
+			if ($pivotX == 0) {
+				left = 0;
+			}
+			else {
+				left = parseInt($pivotX * scale / 100);
+
+				if (left < stageWidth - pageWidth) {
+					left = stageWidth - pageWidth;
+				}
+			}
+		}
+
+		if (deltaHeight >= 0) {
+			top = parseInt(deltaHeight / 2);
+
+			$pivotY = 0;
+		}
+		else {
+			if ($pivotY == 0) {
+				top = 0;
+			}
+			else {
+				top = parseInt($pivotY * scale / 100);
+
+				if (top < stageHeight - pageHeight) {
+					top = stageHeight - pageHeight;
+				}
+			}
+		}
+
+		leftCanvas.width = leftCanvasWidth;
+		leftCanvas.height = leftCanvasHeight;
+
+		var context = leftCanvas.getContext("2d");
+
+		if ($rotate == 0) {
+			context.drawImage(leftImage, 0, 0, leftCanvasWidth, leftCanvasHeight);
+		}
+		else {
+			context.translate(parseInt(leftCanvasWidth / 2), parseInt(leftCanvasHeight / 2));
+			context.rotate($rotate * Math.PI / 180);
+			context.drawImage(leftImage, -parseInt(($rotate == 180 ? leftCanvasWidth : leftCanvasHeight) / 2), -parseInt(($rotate == 180 ? leftCanvasHeight : leftCanvasWidth) / 2), $rotate == 180 ? leftCanvasWidth : leftCanvasHeight, $rotate == 180 ? leftCanvasHeight : leftCanvasWidth);
+		}
+
+		if (pageHeight > leftCanvasHeight) {
+			leftCanvas.style.marginTop = parseInt((pageHeight - leftCanvasHeight) / 2) + "px";
+		}
+
+		if ($pageCurrent < $total) {
+			rightCanvas.width = rightCanvasWidth;
+			rightCanvas.height = rightCanvasHeight;
+
+			context = rightCanvas.getContext("2d");
+
+			if ($rotate == 0) {
+				context.drawImage(rightImage, 0, 0, rightCanvasWidth, rightCanvasHeight);
+			}
+			else {
+				context.translate(parseInt(rightCanvasWidth / 2), parseInt(rightCanvasHeight / 2));
+				context.rotate($rotate * Math.PI / 180);
+				context.drawImage(rightImage, -parseInt(($rotate == 180 ? rightCanvasWidth : rightCanvasHeight) / 2), -parseInt(($rotate == 180 ? rightCanvasHeight : rightCanvasWidth) / 2), $rotate == 180 ? rightCanvasWidth : rightCanvasHeight, $rotate == 180 ? rightCanvasHeight : rightCanvasWidth);
+			}
+
+			rightCanvas.style.marginLeft = leftCanvasWidth + "px";
+			if (pageHeight > rightCanvasHeight) {
+				rightCanvas.style.marginTop = parseInt((pageHeight - rightCanvasHeight) / 2) + "px";
+			}
+		}
+
+		$2pages.style.marginLeft = left + "px";
+		$2pages.style.marginTop = top + "px";
+
+		if (pageWidth > stageWidth) {
+			var scrollWidth = stageWidth - (pageHeight > stageHeight ? 15 : 10);;
+
+			$scrollX.style.width =  scrollWidth + "px";
+			$scrollX.style.display = "block";
+
+			$barX.style.width = parseInt(stageWidth * scrollWidth / pageWidth) + "px";
+			$barX.style.marginLeft = -parseInt(left * scrollWidth / pageWidth) + "px";
+		}
+		else {
+			$scrollX.style.display = "none";
+		}
+
+		if (pageHeight > stageHeight) {
+			var scrollHeight = stageHeight - (pageWidth > stageWidth ? 15 : 10);
+
+			$scrollY.style.height = scrollHeight + "px";
+			$scrollY.style.display = "block";
+
+			$barY.style.height = parseInt(stageHeight * scrollHeight / pageHeight) + "px";
+			$barY.style.marginTop = -parseInt(top * scrollHeight / pageHeight) + "px";
+		}
+		else {
+			$scrollY.style.display = "none";
+		}
+
+		if (stageHeight > 100) {
+			var height = stageHeight - 60;
+
+			$prev.style.height = height + "px";
+			$prev.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
+			$prev.style.left = $2pages.offsetLeft > 90 ? ($2pages.offsetLeft - 60) + "px" : "30px";
+			$prev.style.display = $pageCurrent > 1 ? "block" : "none";
+
+			$next.style.height = height + "px";
+			$next.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
+			$next.style.right = stageWidth - ($2pages.offsetLeft + pageWidth) > 90 ? (stageWidth - ($2pages.offsetLeft + pageWidth) - 60) + "px" : "30px";
+			$next.style.display = $pageCurrent < $total ? "block" : "none";
+		}
+		else {
+			$prev.style.display = "none";
+			$next.style.display = "none";
+		}
+
+		if ((scale != leftImageScale || scale != rightImageScale) && scale <= 300) {
+			if ($hqOn == true) {
+				if ($hqTimer != undefined) {
+					clearTimeout($hqTimer);
+				}
+
+				$hqTimer = setTimeout(_Hq, 300);
+			}
 		}
 	}
-	*/
+	else {
+		// TODO:
+	}
 }
 
 function _Hq() {
@@ -560,25 +634,35 @@ function _Hq() {
 	$hqLoad = false;
 
 	$hqCurrent = $pageCurrent;
-	$hqScale = _CalcScale($pageCurrent);
+	$hqScale = _CalcScale($hqCurrent);
 	$hqRetry = 0;
-	
-	$hqImage = new Image();
-	$hqImage.src = "/get.do?id=" + $id + "&p=" + $pageCurrent + "&s=" + $hqScale;
+
+	$hqImage[0] = new Image();
+	$hqImage[0].src = "/get.do?id=" + $id + "&p=" + $hqCurrent + "&s=" + $hqScale;
+
+	if ($pageType == "2pages" && $hqCurrent < $total) {
+		$hqImage[1] = new Image();
+		$hqImage[1].src = "/get.do?id=" + $id + "&p=" + ($hqCurrent + 1) + "&s=" + $hqScale;
+	}
 
 	setTimeout(_HqCallback, 1);
 }
 
 function _HqCallback() {
-	if ($hqImage.complete == true) {
+	if ($hqImage[0].complete == true && ($hqCurrent == $total || $hqImage[1].complete == true)) {
 		$hqLoad = true;
 
 		if ($hqCurrent != $pageCurrent || $hqScale != _CalcScale($pageCurrent)) {
 			_Hq();
 		}
 		else {
-			$image[$pageCurrent] = $hqImage;
-			$imageScale[$pageCurrent] = $hqScale;
+			$image[$hqCurrent] = $hqImage[0];
+			$imageScale[$hqCurrent] = $hqScale;
+
+			if ($pageType == "2pages" && $hqCurrent < $total) {
+				$image[$hqCurrent + 1] = $hqImage[1];
+				$imageScale[$hqCurrent + 1] = $hqScale;
+			}
 
 			_Resize();
 		}
@@ -611,16 +695,13 @@ function _Drag(action) {
 	if (action == "start") {
 		var target = event.currentTarget != undefined ? event.currentTarget : event.srcElement;
 
-		if (target.id == "1page") {
+		if (target.id == "1page" || target.id == "2pages") {
 			$dragOn = true;
 			$dragX = event.clientX;
 			$dragY = event.clientY;
 		}
-		else if (target.id == "2pages") {
-			
-		}
 		else {
-			
+			// TODO:
 		}
 	}
 	else if (action == "move" && $dragOn == true) {
@@ -660,11 +741,25 @@ function _Drag(action) {
 			$barY.style.marginTop = top + "px";
 		}
 
-		$1page.style.marginLeft = (-($barX.offsetLeft * ($1page.clientWidth - $stage.clientWidth) / ($scrollX.clientWidth - $barX.clientWidth))) + "px";
-		$1page.style.marginTop = (-($barY.offsetTop * ($1page.clientHeight - $stage.clientHeight) / ($scrollY.clientHeight - $barY.clientHeight))) + "px";
+		var page;
 
-		$pivotX = parseInt($1page.offsetLeft * 100 / _CalcScale($pageCurrent));
-		$pivotY = parseInt($1page.offsetTop * 100 / _CalcScale($pageCurrent));
+		if ($pageType == "1page") {
+			page = $1page;
+		}
+		else if ($pageType == "2pages") {
+			page = $2pages;
+		}
+		else {
+			// TODO:
+		}
+
+		page.style.marginLeft = -($barX.offsetLeft * (page.clientWidth - $stage.clientWidth) / ($scrollX.clientWidth - $barX.clientWidth)) + "px";
+		page.style.marginTop = -($barY.offsetTop * (page.clientHeight - $stage.clientHeight) / ($scrollY.clientHeight - $barY.clientHeight)) + "px";
+
+		var scale = _CalcScale($pageCurrent);
+
+		$pivotX = parseInt(page.offsetLeft * 100 / scale);
+		$pivotY = parseInt(page.offsetTop * 100 / scale);
 	}
 	else if (action == "stop") {
 		$dragOn = false;
@@ -681,10 +776,12 @@ function _Wheel(target, delta) {
 		alert("TOC");
 	}
 	else {
-		if ($pageType == "1page") {
-			if ($1page.clientHeight > $stage.clientHeight) {
-				var top = parseInt($1page.style.marginTop) - delta;
-				var boundary = $1page.clientHeight - $stage.clientHeight;
+		if ($pageType == "1page" || $pageType == "2pages") {
+			var page = $pageType == "1page" ? $1page : $2pages;
+
+			if (page.clientHeight > $stage.clientHeight) {
+				var top = parseInt(page.style.marginTop) - delta;
+				var boundary = page.clientHeight - $stage.clientHeight;
 
 				if (top < -boundary) {
 					top = -boundary;
@@ -693,86 +790,18 @@ function _Wheel(target, delta) {
 					top = 0;
 				}
 
-				$1page.style.marginTop = top + "px";
+				page.style.marginTop = top + "px";
 
-				$barY.style.marginTop = (-top * ($scrollY.clientHeight - $barY.clientHeight) / boundary) + "px";
+				$barY.style.marginTop = -(top * ($scrollY.clientHeight - $barY.clientHeight) / boundary) + "px";
 			}
 		}
-		else if ($pageType == "2pages") {
-
-		}
 		else {
-			
+			// TODO:
 		}
-
 	}
 
 	return false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-function magnification(target) {
-	var value = parseInt(target.value);
-
-	if (isNaN(value) == true) {
-		// TODO: 디자인해야 함
-
-		alert("50 ~ 300 사이의 값이어야 합니다.");
-
-		target.value = scale;
-	}
-	else {
-		if (value < 50) {
-			value = 50;
-		}
-		else if (value > 300) {
-			value = 300;
-		}
-
-		fillType = "fixed";
-
-		_classRemove(document.getElementById("heightButton"), "click");
-		_classRemove(document.getElementById("widthButton"), "click");
-
-		_resize();
-	}
-
-	return false;
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function _CalcScale(pageNo) {
 	var tocWidth = $tocOn == true ? $toc.clientWidth + 1 : 0;
@@ -780,16 +809,24 @@ function _CalcScale(pageNo) {
 	var stageHeight = $body.clientHeight - $menuBar.clientHeight;
 	var scale = parseInt($displayScale.value);
 
-	if ($pageType == "1page" || $pageType == "2pages") {
+	if ($pageType == "1page") {
 		if ($fillType == "height") {
 			scale = parseInt(stageHeight / ($rotate == 0 || $rotate == 180 ? $defaultHeight[pageNo] : $defaultWidth[pageNo]) * 100);
 		}
 		else if ($fillType == "width") {
-			scale = parseInt($pageType == "2pages" ? stageWidth / 2 : stageWidth / ($rotate == 0 || $rotate == 180 ? $defaultWidth[pageNo] : $defaultHeight[pageNo]) * 100);
+			scale = parseInt(stageWidth / ($rotate == 0 || $rotate == 180 ? $defaultWidth[pageNo] : $defaultHeight[pageNo]) * 100);
 		}
 	}
-	else if ($pageType == "continue") {
-		// TODO: 구현해야 함.
+	else if ($pageType == "2pages") {
+		if ($fillType == "height") {
+			scale = parseInt(stageHeight / ($rotate == 0 || $rotate == 180 ? Math.max($defaultHeight[pageNo], pageNo < $total ? $defaultHeight[pageNo + 1] : 0) : Math.max($defaultWidth[pageNo], pageNo < $total ? $defaultWidth[pageNo + 1] : 0)) * 100);
+		}
+		else if ($fillType == "width") {
+			scale = parseInt(stageWidth / ($rotate == 0 || $rotate == 180 ? $defaultWidth[pageNo] + (pageNo < $total ? $defaultWidth[pageNo + 1] : 0) : ($defaultHeight[pageNo] + (pageNo < $total ? $defaultHeight[pageNo + 1] : 0))) * 100);
+		}
+	}
+	else {
+		// TODO:
 	}
 
 	if (scale > 500) {
@@ -806,12 +843,20 @@ function _ClassAppend(name, target) {
 	var event = event ? event : window.event;
 	var target = target != undefined ? target : event.currentTarget != undefined ? event.currentTarget : event.srcElement;
 
+	if (target.tagName == "IMG") {
+		target = target.parentNode;
+	}
+
 	target.className += " "+name;
 }
 
 function _ClassRemove(name, target) {
 	var event = event ? event : window.event;
 	var target = target != undefined ? target : event.currentTarget != undefined ? event.currentTarget : event.srcElement;
+
+	if (target.tagName == "IMG") {
+		target = target.parentNode;
+	}
 
 	var token = target.className.split(" ");
 	var className = new Array();
@@ -862,22 +907,23 @@ function PrintPopup() {
 function Move(type) {
 	var event = event ? event : window.event;
 	var target = (target != undefined ? target : event.currentTarget != undefined ? event.currentTarget : event.srcElement).parentNode;
+	var step = $pageType == "1page" ? 1 : 2;
 	var pageNo;
 
 	if (type == "prev") {
 		if (target.id == "MenuBar") {
-			pageNo = parseInt($displayCurrent.value) - 1;
+			pageNo = parseInt($displayCurrent.value) - step;
 		}
 		else {
-			pageNo = parseInt($pageCurrent) - 1;
+			pageNo = parseInt($pageCurrent) - step;
 		}
 	}
 	else if (type == "next") {
 		if (target.id == "MenuBar") {
-			pageNo = parseInt($displayCurrent.value) + 1;
+			pageNo = parseInt($displayCurrent.value) + step;
 		}
 		else {
-			pageNo = parseInt($pageCurrent) + 1;
+			pageNo = parseInt($pageCurrent) + step;
 		}
 	}
 	else {
@@ -900,28 +946,53 @@ function Move(type) {
 }
 
 function PageType(type) {
-	if (type == "1page") {
-		_ClassAppend("click", $1pageButton);
-	}
-	else {
+	var canvasList;
+
+	if ($pageType == "1page") {
 		_ClassRemove("click", $1pageButton);
+
+		$1page.style.display = "none";
+
+		canvasList = $1page.getElementsByTagName("canvas");
 	}
-	if (type == "2pages") {
-		_ClassAppend("click", $2pagesButton);
-	}
-	else {
+	else if ($pageType == "2pages") {
 		_ClassRemove("click", $2pagesButton);
-	}
-	if (type == "continue") {
-		_ClassAppend("click", $continueButton);
+
+		$2pages.style.display = "none";
+
+		canvasList = $2pages.getElementsByTagName("canvas");
 	}
 	else {
 		_ClassRemove("click", $continueButton);
+
+		$continue.style.display = "none";
+
+		canvasList = $continue.getElementsByTagName("canvas");
+	}
+
+	while (canvasList.length > 0) {
+		canvasList[0].parentNode.removeChild(canvasList[0]);
+	}
+
+	if (type == "1page") {
+		_ClassAppend("click", $1pageButton);
+
+		$1page.style.display = "block";
+	}
+	else if (type == "2pages") {
+		_ClassAppend("click", $2pagesButton);
+
+		$2pages.style.display = "block";
+	}
+	else {
+		_ClassAppend("click", $continueButton);
+
+		$continue.style.display = "block";
 	}
 
 	$pageType = type;
 
-	_Resize();
+	_Load($pageCurrent);
 
 	return false;
 }

@@ -19,6 +19,9 @@ a {
 	font-weight:bold;
 	text-decoration:none;
 }
+img {
+	border:0;
+}
 #MenuBar {
 	/*background-color:rgb(43,43,45);*/
 	background-color:rgb(220,220,222);
@@ -29,13 +32,10 @@ a {
 #MenuBar a {
 	display:block;
 	float:left;
-	height:40px;
-	width:40px;
 }
 #MenuBar a img {
 	height:24px;
-	margin-left:8px;
-	margin-top:8px;
+	margin:8px;
 	width:24px;
 }
 #MenuBar a.over {
@@ -74,8 +74,8 @@ a {
 }
 #Toc {
 	background-color:rgb(234,234,235);
-	border-right:1px solid rgb(227,227,228);
-	border-top:2px solid rgb(0,163,224);
+	border-right:1px solid rgb(0,163,224);
+	overflow:hidden;
 	position:absolute;
 	width:250px;
 }
@@ -95,6 +95,7 @@ a {
 }
 #Stage canvas {
 	cursor:pointer;
+	position:absolute;
 }
 #Stage .scroll {
 	border-radius:6px;

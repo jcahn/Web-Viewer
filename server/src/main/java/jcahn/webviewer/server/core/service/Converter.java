@@ -21,8 +21,14 @@ public class Converter {
 	@Autowired
 	Storage storage;
 
-	@Value("#{properties['converter.path']}")
-	private String converterPath;
+	@Value("#{properties['bin.mudraw.path']}")
+	private String mudrawPath;
+
+	@Value("#{properties['bin.convert.path']}")
+	private String convertPath;
+
+	@Value("#{properties['bin.identify.path']}")
+	private String identifyPath;
 
 	@Value("#{properties['max.waiting.millis']}")
 	private int maxWaitingMillis;
@@ -65,7 +71,7 @@ public class Converter {
 
 		ArrayList<String> command = new ArrayList<String>();
 
-		command.add(this.converterPath + "/mudraw.exe");
+		command.add(this.mudrawPath);
 		command.add("-o");
 		command.add(cachePath);
 		command.add("-r");
@@ -109,7 +115,7 @@ public class Converter {
 
 		ArrayList<String> command = new ArrayList<String>();
 
-		command.add(this.converterPath + "/identify.exe");
+		command.add(this.identifyPath);
 		command.add(filePath);
 
 		this.logger.debug("command: " + command.toString());
@@ -187,7 +193,7 @@ public class Converter {
 
 		ArrayList<String> command = new ArrayList<String>();
 
-		command.add(this.converterPath + "/convert.exe");
+		command.add(this.convertPath);
 		command.add(filePath);
 		command.add("-resize");
 		command.add(width + "x" + height);

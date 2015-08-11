@@ -8,7 +8,10 @@
 	<entry key="doc.cache.path">C:/GitHub/workspace/cache</entry>
 
 	<!-- 변환 및 전송 설정 -->
-	<entry key="converter.path">C:/GitHub/workspace/bin</entry>
+	<entry key="bin.mudraw.path">C:/GitHub/workspace/bin/mudraw.exe</entry>
+	<entry key="bin.mutool.path">C:/GitHub/workspace/bin/mutool.exe</entry>
+	<entry key="bin.convert.path">C:/GitHub/workspace/bin/convert.exe</entry>
+	<entry key="bin.identify.path">C:/GitHub/workspace/bin/identify.exe</entry>
 	<entry key="max.waiting.millis">30000</entry>
 
 	<!-- 뷰어 기본 설정 -->
