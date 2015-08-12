@@ -13,12 +13,12 @@ body {
 	overflow:hidden;
 	visibility:hidden;
 }
-a {
+/*a {
 	color:#fff;
 	font-size:12px;
 	font-weight:bold;
 	text-decoration:none;
-}
+}*/
 img {
 	border:0;
 }
@@ -76,8 +76,47 @@ img {
 	background-color:rgb(234,234,235);
 	border-right:1px solid rgb(0,163,224);
 	overflow:hidden;
+	padding:5px;
 	position:absolute;
-	width:250px;
+	width:240px;
+}
+#Toc a {
+	color:rgb(80, 80, 82);
+	display:block;
+	font-size:13px;
+	text-decoration:none;
+}
+#Toc .item {
+	padding:6px 5px;
+	cursor:pointer;
+}
+#Toc .split {
+	border-bottom:1px solid rgb(244,244,245);
+	border-top:1px solid rgb(224,224,225);
+	height:0;
+	width:240px;
+}
+#Toc #ScrollToc {
+	display:none;
+	overflow:hidden;
+	position:absolute;
+	right:4px;
+	top:5px;
+	width:6px;
+}
+#Toc #ScrollToc .lane {
+	background-color:rgb(240,240,242);
+	border-radius:6px;
+	height:100%;
+	opacity:0.8;
+	position:absolute;
+	width:100%;
+}
+#Toc #ScrollToc #BarToc {
+	background-color:rgb(160,160,162);
+	border-radius:6px;
+	position:absolute;
+	width:100%;
 }
 #Stage {
 	background-color:#f8f8f8;
@@ -98,7 +137,6 @@ img {
 	position:absolute;
 }
 #Stage .scroll {
-	border-radius:6px;
 	display:none;
 	overflow:hidden;
 	position:absolute;
@@ -115,6 +153,7 @@ img {
 }
 #Stage .scroll .lane {
 	background-color:rgb(240,240,242);
+	border-radius:6px;
 	height:100%;
 	opacity:0.8;
 	position:absolute;
@@ -122,6 +161,7 @@ img {
 }
 #Stage .scroll .bar {
 	background-color:rgb(160,160,162);
+	border-radius:6px;
 	position:absolute;
 }
 #Stage .scroll .bar.x {
@@ -132,7 +172,6 @@ img {
 }
 #Stage .move {
 	background-color:rgb(187,187,189);
-	background-position-x:16px;
 	background-repeat:no-repeat;
 	opacity:0.1;
 	position:absolute;

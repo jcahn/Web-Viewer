@@ -67,11 +67,6 @@ public class Transferrer {
 
 		converter.convert(id, page);
 
-		try {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-		}
-		catch (Exception e) {}
-
 		return null;
 	}
 }

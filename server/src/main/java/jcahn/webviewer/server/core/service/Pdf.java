@@ -4,8 +4,17 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
+import java.util.List;
+
 import jcahn.webviewer.server.core.Dimension;
 import jcahn.webviewer.server.core.PdfInfo;
+import jcahn.webviewer.server.core.Toc;
+
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSObject;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +34,13 @@ public class Pdf {
 
 	public PdfInfo info(String id) {
 
+		String originalPath = storage.originalPath(id);
+
 		ArrayList<String> command = new ArrayList<String>();
 
 		command.add(this.mutoolPath);
 		command.add("pages");
-		command.add(storage.originalPath(id));
+		command.add(originalPath);
 
 		this.logger.debug("command: " + command.toString());
 
@@ -86,8 +97,77 @@ public class Pdf {
 			catch (Exception e) {}
 		}
 
+		PDDocument doc = null;
+
+		try {
+			doc = PDDocument.load(originalPath);
+
+			if (doc.getDocumentCatalog().getDocumentOutline() != null) {
+				toc(info.tocList, doc, doc.getDocumentCatalog().getDocumentOutline().getFirstChild(), 1);
+			}
+		}
+		catch (Exception e) {
+			this.logger.debug("\ninfo 작업 오류 발생;\nid: " + id + "\npdfbox 오류.");
+
+			info.tocList.clear();
+		}
+		finally {
+			try {
+				doc.close();
+			}
+			catch (Exception e) {}
+		}
+
 		this.logger.debug("pdf info\npages: " + info.pages);
+		this.logger.debug("dimensions: " + info.dimensionList.size());
+		this.logger.debug("tocs: " + info.tocList.size());
 
 		return info;
+	}
+
+	// --------------------------------------------------
+
+	@SuppressWarnings("unchecked")
+	private void toc(ArrayList<Toc> tocList, PDDocument doc, PDOutlineItem item, int level) throws Exception {
+
+		while (item != null) {
+			int page;
+
+			if (item.getDestination() != null) {
+				page = ((List<PDPage>)doc.getDocumentCatalog().getAllPages()).indexOf(item.findDestinationPage(doc)) + 1;
+			}
+			else if (item.getAction() != null) {
+				if ("GoTo".equals(item.getAction().getSubType())) {
+					COSObject o = (COSObject)((COSArray)item.getAction().getCOSDictionary().getDictionaryObject("D")).get(0);
+
+					page = doc.getPageMap().get(o.getObjectNumber().intValue()+","+o.getGenerationNumber().intValue());
+				}
+				else if ("GoToR".equals(item.getAction().getSubType())) {
+					page = ((COSArray)item.getAction().getCOSDictionary().getDictionaryObject("D")).getInt(0) + 1;
+				}
+				else {
+					throw new Exception("<!> "+item.getAction().getSubType()+" type not supported.");
+				}
+			}
+			else {
+				throw new Exception("<!> toc type not supported.");
+			}
+
+			Toc tocItem = new Toc();
+
+			tocItem.level = level;
+			tocItem.title = item.getTitle();
+			tocItem.page = page;
+
+			tocList.add(tocItem);
+
+			PDOutlineItem child = item.getFirstChild();
+
+			if (child != null) {
+				toc(tocList, doc, child, level + 1);
+			}
+
+			item = item.getNextSibling();
+		}
 	}
 }

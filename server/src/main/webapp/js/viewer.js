@@ -1,6 +1,9 @@
 var $body = document.getElementsByTagName("body")[0];
 var $menuBar = document.getElementById("MenuBar");
 var $toc = document.getElementById("Toc");
+var $tocList = document.getElementById("TocList");
+var $scrollToc = document.getElementById("ScrollToc");
+var $barToc = document.getElementById("BarToc");
 var $stage = document.getElementById("Stage");
 var $1page = document.getElementById("1page");
 var $2pages = document.getElementById("2pages");
@@ -39,6 +42,7 @@ var $hqLoad;
 var $hqCurrent;
 var $hqScale;
 var $hqRetry;
+var $tocOn = false;
 var $dragOn = false;
 var $dragX = 0;
 var $dragY = 0;
@@ -62,6 +66,7 @@ catch (e) {
 
 function _Init() {
 	setTimeout(function() {
+		// 드래그 방지
 		if (typeof $body.onselectstart != "undefined") {
 			$body.onselectstart = function() {
 				return false;
@@ -77,11 +82,22 @@ function _Init() {
 			$body.style.cursor = "default";
 		}
 
+		// 이벤트 등록
+		var aList = $menuBar.getElementsByTagName("a");
+
+		for (var i = 0; i < aList.length; i++) {
+			var img = aList[i].getElementsByTagName("img")[0];
+
+			img.addEventListener("mouseover", function(event) {_ClassAppend('over', event);});
+			img.addEventListener("mouseout", function(event) {_ClassRemove('over', event);});
+		}
+
+		// 화면 세팅
 		var tocWidth = $tocOn == true ? $toc.clientWidth + 1 : 0;
 		var stageHeight = $body.clientHeight - $menuBar.clientHeight;
 
 		$toc.style.display = $tocOn == true ? "block" : "none";
-		$toc.style.height = stageHeight + "px";
+		$toc.style.height = (stageHeight - 10) + "px";
 		$stage.style.top = $toc.style.top = $menuBar.clientHeight + "px";
 		$stage.style.left = tocWidth + "px";
 		$stage.style.width = ($body.clientWidth - tocWidth) + "px";
@@ -114,6 +130,7 @@ function _Init() {
 
 		$body.style.visibility = "visible";
 
+		// 첫 페이지 가져오기
 		_Load(1);
 	}, 1);
 }
@@ -307,6 +324,7 @@ function _Resize() {
 	$stage.style.left = tocWidth + "px";
 	$stage.style.width = stageWidth + "px";
 	$stage.style.height = stageHeight + "px";
+	$toc.style.height = (stageHeight - 10) + "px";
 
 	if ($pageLoad != true) {
 		return;
@@ -319,10 +337,10 @@ function _Resize() {
 
 		if (canvas == undefined) {
 			canvas = document.createElement("canvas");
-			canvas.addEventListener("mousedown", function() {_Drag('start');});
-			canvas.addEventListener("mousemove", function() {_Drag('move');});
+			canvas.addEventListener("mousedown", function(event) {_Drag('start', event);});
+			canvas.addEventListener("mousemove", function(event) {_Drag('move', event);});
 			canvas.addEventListener("mouseup", function() {_Drag('stop');});
-				 
+
 			$1page.appendChild(canvas);
 		}
 
@@ -422,12 +440,12 @@ function _Resize() {
 			var height = stageHeight - 60;
 
 			$prev.style.height = height + "px";
-			$prev.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
+			$prev.style.backgroundPosition = "16px " + parseInt((height - 40) / 2) + "px";
 			$prev.style.left = $1page.offsetLeft > 90 ? ($1page.offsetLeft - 60) + "px" : "30px";
 			$prev.style.display = $pageCurrent > 1 ? "block" : "none";
 
 			$next.style.height = height + "px";
-			$next.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
+			$next.style.backgroundPosition = "16px " + parseInt((height - 40) / 2) + "px";
 			$next.style.right = stageWidth - ($1page.offsetLeft + pageWidth) > 90 ? (stageWidth - ($1page.offsetLeft + pageWidth) - 60) + "px" : "30px";
 			$next.style.display = $pageCurrent < $total ? "block" : "none";
 		}
@@ -436,7 +454,7 @@ function _Resize() {
 			$next.style.display = "none";
 		}
 
-		if (scale != imageScale && scale <= 300) {
+		if ((scale != imageScale && scale <= 300) || (scale > 300 && imageScale != 300)) {
 			if ($hqOn == true) {
 				if ($hqTimer != undefined) {
 					clearTimeout($hqTimer);
@@ -453,8 +471,8 @@ function _Resize() {
 
 		if (leftCanvas == undefined) {
 			leftCanvas = document.createElement("canvas");
-			leftCanvas.addEventListener("mousedown", function() {_Drag('start');});
-			leftCanvas.addEventListener("mousemove", function() {_Drag('move');});
+			leftCanvas.addEventListener("mousedown", function(event) {_Drag('start', event);});
+			leftCanvas.addEventListener("mousemove", function(event) {_Drag('move', event);});
 			leftCanvas.addEventListener("mouseup", function() {_Drag('stop');});
 
 			$2pages.appendChild(leftCanvas);
@@ -604,12 +622,12 @@ function _Resize() {
 			var height = stageHeight - 60;
 
 			$prev.style.height = height + "px";
-			$prev.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
+			$prev.style.backgroundPosition = "16px " + parseInt((height - 40) / 2) + "px";
 			$prev.style.left = $2pages.offsetLeft > 90 ? ($2pages.offsetLeft - 60) + "px" : "30px";
 			$prev.style.display = $pageCurrent > 1 ? "block" : "none";
 
 			$next.style.height = height + "px";
-			$next.style.backgroundPositionY = parseInt((height - 40) / 2) + "px";
+			$next.style.backgroundPosition = "16px " + parseInt((height - 40) / 2) + "px";
 			$next.style.right = stageWidth - ($2pages.offsetLeft + pageWidth) > 90 ? (stageWidth - ($2pages.offsetLeft + pageWidth) - 60) + "px" : "30px";
 			$next.style.display = $pageCurrent < $total ? "block" : "none";
 		}
@@ -618,7 +636,7 @@ function _Resize() {
 			$next.style.display = "none";
 		}
 
-		if ((scale != leftImageScale || scale != rightImageScale) && scale <= 300) {
+		if (((scale != leftImageScale || scale != rightImageScale) && scale <= 300) || (scale > 300 && (leftImageScale != 300 || rightImageScale != 300))) {
 			if ($hqOn == true) {
 				if ($hqTimer != undefined) {
 					clearTimeout($hqTimer);
@@ -630,6 +648,20 @@ function _Resize() {
 	}
 	else {
 		// TODO:
+	}
+
+	if ($tocList.clientHeight > $toc.clientHeight) {
+		var scrollHeight = $toc.clientHeight - 10;
+		var top =  $tocList.offsetHeight * (scrollHeight - $barToc.clientHeight) / ($tocList.clientHeight - $toc.clientHeight);
+
+		$scrollToc.style.height = scrollHeight + "px";
+		$scrollToc.style.display = "block";
+
+		$barToc.style.height = parseInt(scrollHeight * scrollHeight / $tocList.clientHeight) + "px";
+		$barToc.style.marginTop = -(($tocList.offsetTop - 5) * (scrollHeight - $barToc.clientHeight) / ($tocList.clientHeight - $toc.clientHeight))+ "px";
+	}
+	else {
+		$scrollToc.style.display = "none";
 	}
 }
 
@@ -644,6 +676,11 @@ function _Hq() {
 
 	$hqCurrent = $pageCurrent;
 	$hqScale = _CalcScale($hqCurrent);
+	
+	if ($hqScale > 300) {
+		$hqScale = 300;
+	}
+
 	$hqRetry = 0;
 
 	$hqImage[0] = new Image();
@@ -653,22 +690,27 @@ function _Hq() {
 		$hqImage[1] = new Image();
 		$hqImage[1].src = "/get.do?id=" + $id + "&p=" + ($hqCurrent + 1) + "&s=" + $hqScale;
 	}
+	else {
+		$hqImage[1] = undefined;
+	}
 
 	setTimeout(_HqCallback, 1);
 }
 
 function _HqCallback() {
-	if ($hqImage[0].complete == true && ($hqCurrent == $total || $hqImage[1].complete == true)) {
+	if ($hqImage[0].complete == true && ($hqImage[1] == undefined || $hqImage[1].complete == true)) {
 		$hqLoad = true;
 
-		if ($hqCurrent != $pageCurrent || $hqScale != _CalcScale($pageCurrent)) {
+		var scale = _CalcScale($pageCurrent);
+
+		if ($hqCurrent != $pageCurrent || ((scale <=300 && $hqScale != scale) || (scale > 300 && $hqScale != 300))) {
 			_Hq();
 		}
 		else {
 			$image[$hqCurrent] = $hqImage[0];
 			$imageScale[$hqCurrent] = $hqScale;
 
-			if ($pageType == "2pages" && $hqCurrent < $total) {
+			if ($hqImage[1] != undefined) {
 				$image[$hqCurrent + 1] = $hqImage[1];
 				$imageScale[$hqCurrent + 1] = $hqScale;
 			}
@@ -698,28 +740,57 @@ function _Keyword(type) {
 	}
 }
 
-function _Drag(action) {
-	var event = event ? event : window.event;
-
+function _Drag(action, event) {
 	if (action == "start") {
-		var target = (event.currentTarget != undefined ? event.currentTarget : event.srcElement).parentNode;
-
-		if (target.id == "1page" || target.id == "2pages") {
-			$dragOn = true;
-			$dragX = event.clientX;
-			$dragY = event.clientY;
-		}
-		else {
-			// TODO:
-		}
+		$dragOn = true;
+		$dragX = event.clientX;
+		$dragY = event.clientY;
 	}
 	else if (action == "move" && $dragOn == true) {
-		var x = $dragX - event.clientX;
-		var y = $dragY - event.clientY;
+		var x = event.clientX - $dragX;
+		var y = event.clientY - $dragY;
 
 		$dragX = event.clientX;
 		$dragY = event.clientY;
 
+		var page = $pageType == "1page" ? $1page : $2pages;
+		var left;
+		var top;
+
+		if (page.clientWidth > $stage.clientWidth) {
+			left = page.offsetLeft + x;
+
+			if (left > 0) {
+				left = 0;
+			}
+			else if (left < ($stage.clientWidth - page.clientWidth)) {
+				left = $stage.clientWidth - page.clientWidth;
+			}
+		}
+
+		if (page.clientHeight > $stage.clientHeight) {
+			top = page.offsetTop + y;
+
+			if (top > 0) {
+				top = 0;
+			}
+			else if (top < ($stage.clientHeight - page.clientHeight)) {
+				top = $stage.clientHeight - page.clientHeight;
+			}
+		}
+
+		if (left != undefined) {
+			page.style.marginLeft = left + "px";
+
+			$barX.style.marginLeft = -(left * ($scrollX.clientWidth - $barX.clientWidth) / (page.clientWidth - $stage.clientWidth)) + "px";
+		}
+		if (top != undefined) {
+			page.style.marginTop = top + "px";
+
+			$barY.style.marginTop = -(top * ($scrollY.clientHeight - $barY.clientHeight) / (page.clientHeight - $stage.clientHeight)) + "px";
+		}
+
+		/* 스크롤바 스크롤 시 루틴...
 		if (x != 0) {
 			var left = $barX.offsetLeft + x;
 
@@ -764,6 +835,7 @@ function _Drag(action) {
 
 		page.style.marginLeft = -($barX.offsetLeft * (page.clientWidth - $stage.clientWidth) / ($scrollX.clientWidth - $barX.clientWidth)) + "px";
 		page.style.marginTop = -($barY.offsetTop * (page.clientHeight - $stage.clientHeight) / ($scrollY.clientHeight - $barY.clientHeight)) + "px";
+		*/
 
 		var scale = _CalcScale($pageCurrent);
 
@@ -781,32 +853,40 @@ function _Drag(action) {
 }
 
 function _Wheel(target, delta) {
+	var content;
+	var bar;
+	var areaHeight;
+	var contentHeight;
+	var scrollHeight;
+
 	if (target == "toc") {
-		alert("TOC");
+		content = $tocList;
+		bar = $barToc;
+		areaHeight = $toc.clientHeight - 10;
+		contentTop = content.offsetTop - 5;
+		scrollHeight = $scrollToc.clientHeight;
 	}
 	else {
-		if ($pageType == "1page" || $pageType == "2pages") {
-			var page = $pageType == "1page" ? $1page : $2pages;
+		content = $pageType == "1page" ? $1page : $2pages;
+		bar = $barY;
+		areaHeight = $stage.clientHeight;
+		contentTop = content.offsetTop;
+		scrollHeight = $scrollY.clientHeight;
+	}
 
-			if (page.clientHeight > $stage.clientHeight) {
-				var top = parseInt(page.style.marginTop) - delta;
-				var boundary = page.clientHeight - $stage.clientHeight;
+	if (content.clientHeight > areaHeight) {
+		var top = contentTop - delta;
+		var boundary = content.clientHeight - areaHeight;
 
-				if (top < -boundary) {
-					top = -boundary;
-				}
-				else if (top > 0) {
-					top = 0;
-				}
-
-				page.style.marginTop = top + "px";
-
-				$barY.style.marginTop = -(top * ($scrollY.clientHeight - $barY.clientHeight) / boundary) + "px";
-			}
+		if (top < -boundary) {
+			top = -boundary;
 		}
-		else {
-			// TODO:
+		else if (top > 0) {
+			top = 0;
 		}
+
+		content.style.marginTop = top + "px";
+		bar.style.marginTop = -(top * (scrollHeight - bar.clientHeight) / boundary) + "px";
 	}
 
 	return false;
@@ -848,22 +928,36 @@ function _CalcScale(pageNo) {
 	return scale;
 }
 
-function _ClassAppend(name, target) {
-	var event = event ? event : window.event;
-	var target = target != undefined ? target : event.currentTarget != undefined ? event.currentTarget : event.srcElement;
+function _ClassAppend(name, event) {
+	var constructor = event.constructor.toString();
+	var target;
 
-	if (target.tagName == "IMG") {
+	if (constructor.indexOf("function MouseEvent()") == 0 || constructor.indexOf("[object MouseEvent]") == 0) {
+		target = event.currentTarget != undefined ? event.currentTarget : event.srcElement;
+	}
+	else {
+		target = event;
+	}
+
+	while (target.tagName != "A") {
 		target = target.parentNode;
 	}
 
 	target.className += " "+name;
 }
 
-function _ClassRemove(name, target) {
-	var event = event ? event : window.event;
-	var target = target != undefined ? target : event.currentTarget != undefined ? event.currentTarget : event.srcElement;
+function _ClassRemove(name, event) {
+	var constructor = event.constructor.toString();
+	var target;
 
-	if (target.tagName == "IMG") {
+	if (constructor.indexOf("function MouseEvent()") == 0 || constructor.indexOf("[object MouseEvent]") == 0) {
+		target = event.currentTarget != undefined ? event.currentTarget : event.srcElement;
+	}
+	else {
+		target = event;
+	}
+
+	while (target.tagName != "A") {
 		target = target.parentNode;
 	}
 
@@ -913,30 +1007,24 @@ function PrintPopup() {
 	return false;
 }
 
-function Move(type) {
-	var event = event ? event : window.event;
-	var target = (target != undefined ? target : event.currentTarget != undefined ? event.currentTarget : event.srcElement).parentNode;
+function Move(type, goTo) {
 	var step = $pageType == "1page" ? 1 : 2;
 	var pageNo;
 
-	if (type == "prev") {
-		if (target.id == "MenuBar") {
-			pageNo = parseInt($displayCurrent.value) - step;
-		}
-		else {
-			pageNo = parseInt($pageCurrent) - step;
-		}
+	if (type == "fast_prev") {
+		pageNo = parseInt($displayCurrent.value) - step;
+	}
+	else if (type == "prev") {
+		pageNo = parseInt($pageCurrent) - step;
 	}
 	else if (type == "next") {
-		if (target.id == "MenuBar") {
-			pageNo = parseInt($displayCurrent.value) + step;
-		}
-		else {
-			pageNo = parseInt($pageCurrent) + step;
-		}
+		pageNo = parseInt($pageCurrent) + step;
+	}
+	else if (type == "fast_next") {
+		pageNo = parseInt($displayCurrent.value) + step;
 	}
 	else {
-		pageNo = parseInt($displayCurrent.value);
+		pageNo = goTo != undefined ? goTo : parseInt($displayCurrent.value);
 	}
 
 	if (isNaN(pageNo) == true || pageNo < 1) {

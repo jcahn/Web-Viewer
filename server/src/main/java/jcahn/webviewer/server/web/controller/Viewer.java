@@ -3,7 +3,6 @@ package jcahn.webviewer.server.web.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jcahn.webviewer.server.core.service.Pdf;
-import jcahn.webviewer.server.core.PdfInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +39,7 @@ public class Viewer {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 		response.setHeader("Expires", "0");
 
-		PdfInfo info = pdf.info(id);
-
-		model.addAttribute("info", info);
+		model.addAttribute("info", pdf.info(id));
 		model.addAttribute("viewerPageType", this.viewerPageType);
 		model.addAttribute("viewerFillType", this.viewerFillType);
 		model.addAttribute("viewerHqOn", this.viewerHqOn);
