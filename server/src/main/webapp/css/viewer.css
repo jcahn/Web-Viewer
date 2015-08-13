@@ -13,12 +13,6 @@ body {
 	overflow:hidden;
 	visibility:hidden;
 }
-/*a {
-	color:#fff;
-	font-size:12px;
-	font-weight:bold;
-	text-decoration:none;
-}*/
 img {
 	border:0;
 }
@@ -130,10 +124,9 @@ img {
 	display:none;
 }
 #Stage #continue {
-	display:none;
+/*	display:none;*/
 }
 #Stage canvas {
-	cursor:pointer;
 	position:absolute;
 }
 #Stage .scroll {

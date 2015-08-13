@@ -7,7 +7,7 @@ var $barToc = document.getElementById("BarToc");
 var $stage = document.getElementById("Stage");
 var $1page = document.getElementById("1page");
 var $2pages = document.getElementById("2pages");
-var $continue = document.getElementById("continue");
+var $continue = document.getElementById("Continue");
 var $loading = document.getElementById("Loading");
 var $prev = document.getElementById("Prev");
 var $next = document.getElementById("Next");
@@ -48,9 +48,8 @@ var $dragX = 0;
 var $dragY = 0;
 var $pivotX;
 var $pivotY;
-
-	var $mediaWidth;
-	var $mediaWeight;
+var $maxWidth = 0;
+var $maxHeight = 0;
 
 try {
 	window.addEventListener("load", _Init);
@@ -92,6 +91,16 @@ function _Init() {
 			img.addEventListener("mouseout", function(event) {_ClassRemove('over', event);});
 		}
 
+		// 기본값 설정
+		for (var i = 0; i < $defaultWidth.length; i++) {
+			if ($defaultWidth[i] > $maxWidth) {
+				$maxWidth = $defaultWidth[i];
+			}
+			if ($defaultHeight[i] > $maxHeight) {
+				$maxHeight = $defaultHeight[i];
+			}
+		}
+
 		// 화면 세팅
 		var tocWidth = $tocOn == true ? $toc.clientWidth + 1 : 0;
 		var stageHeight = $body.clientHeight - $menuBar.clientHeight;
@@ -107,21 +116,50 @@ function _Init() {
 		}
 		if ($pageType == "1page") {
 			$1pageButton.className = "click";
-			$1page.display = "block";
+			$1page.style.display = "block";
 		}
 		else if ($pageType == "2pages") {
 			$2pagesButton.className = "click";
-			$2pages.display = "block";
+			$2pages.style.display = "block";
 		}
 		else {
 			$continueButton.className = "click";
-			$continue.display = "block";
+			$continue.style.display = "block";
 		}
 		if ($fillType == "height") {
 			$heightButton.className = "click";
+
+			var scale = _CalcScale(1);
+			var pageList = $continue.getElementsByTagName("div");
+			var maxWidth = parseInt(($rotate == 0 || $rotate == 180 ? $maxWidth : $maxHeight) * scale / 100);
+
+			for (var i = 0; i < $total; i++) {
+				var page = pageList[i];
+
+				page.style.width = parseInt(($rotate == 0 || $rotate == 180 ? $defaultWidth[i + 1] : $defaultHeight[i + 1]) * scale / 100) + "px";
+				page.style.height = parseInt(($rotate == 0 || $rotate == 180 ? $defaultHeight[i + 1] : $defaultWidth[i + 1]) * scale / 100) + "px";
+				page.style.marginLeft = "auto";
+				page.style.marginRight = "auto";
+			}
 		}
 		else if ($fillType == "width") {
 			$widthButton.className = "click";
+
+			var scale = _CalcScale(1);
+			var pageList = $continue.getElementsByTagName("div");
+			var maxWidth = parseInt(($rotate == 0 || $rotate == 180 ? $maxWidth : $maxHeight) * scale / 100);
+
+			for (var i = 0; i < $total; i++) {
+				var page = pageList[i];
+
+				page.style.width = parseInt(($rotate == 0 || $rotate == 180 ? $defaultWidth[i + 1] : $defaultHeight[i + 1]) * scale / 100) + "px";
+				page.style.height = parseInt(($rotate == 0 || $rotate == 180 ? $defaultHeight[i + 1] : $defaultWidth[i + 1]) * scale / 100) + "px";
+				page.style.marginLeft = "auto";
+				page.style.marginRight = "auto";
+			}
+		}
+		else {
+			//
 		}
 		if ($hqOn == true) {
 			$hqButton.className = "click";
@@ -138,6 +176,21 @@ function _Init() {
 function _Load(pageNo) {
 	if ($pageLoad == false) {
 		return;
+	}
+
+	var autoPage = false;
+
+	if (pageNo == undefined) {
+		pageNo = parseInt($total * $barY.offsetTop / ($scrollY.clientHeight - $barY.clientHeight));
+
+		if (isNaN(pageNo) || pageNo < 1) {
+			pageNo = 1;
+		}
+		else if (pageNo > $total) {
+			pageNo = $total;
+		}
+
+		autoPage = true;
 	}
 
 	$pageLoad = false;
@@ -225,6 +278,67 @@ function _Load(pageNo) {
 	}
 	else {
 		// TODO:
+		var canvasList = $continue.getElementsByTagName("canvas");
+
+		while (canvasList.length > 0) {
+alert(canvasList.length);
+			var canvas = canvasList[0];
+			var div = canvas.parentNode;
+
+			if ((div.offsetTop + div.clientHeight < -$continue.offsetTop) || (div.offsetTop > -$continue.offsetTop + $stage.clientHeight)) {
+				div.removeChild(canvas);
+			}
+		}
+
+		if (autoPage == true) {
+			$continue.style.marginTop = -document.getElementById("Page" + pageNo).offsetTop + "px";
+		}
+		else {
+			while (document.getElementById("Page" + pageNo).offsetTop > -$continue.offsetTop) {
+				if (pageNo > 1) {
+					pageNo--;
+				}
+				else {
+					break;
+				}
+			}
+
+			while (true) {
+				var page = document.getElementById("Page" + pageNo);
+
+				if (page.offsetTop + page.clientHeight < -$continue.offsetTop) {
+					if (pageNo < $total) {
+						pageNo++;
+
+						continue;
+					}
+				}
+
+				break;
+			}
+		}
+
+		var scale = _CalcScale();
+
+		while (pageNo <= $total && document.getElementById("Page" + pageNo).offsetTop <= -$continue.offsetTop + $stage.clientHeight) {
+			if ($image[pageNo] == undefined || $imageScale[pageNo] != scale) {
+				if ($image[pageNo] == undefined) {
+					$image[pageNo] = new Image();
+				}
+
+				$imageScale[pageNo] = scale;
+				$image[pageNo].src = "/get.do?id=" + $id + "&p=" + pageNo + "&s=" + scale;
+			}
+
+			pageNo++;
+		}
+
+		if ($pageCurrent > 1) {
+			$preload.src = "/preload.do?id=" + $id + "&p=" + ($pageCurrent - 1);
+		}
+		if (pageNo < $total) {
+			$preload.src = "/preload.do?id=" + $id + "&p=" + (pageNo + 1);
+		}
 	}
 
 	$pageRetry = 0;
@@ -247,6 +361,16 @@ function _LoadCallback() {
 	}
 	else {
 		// TODO:
+		var pageNo = $pageCurrent;
+		var complete = true;
+
+		while (pageNo <= $total && document.getElementById("Page" + pageNo).offsetTop <= -$continue.offsetTop + $stage.clientHeight && complete == true) {
+			if ($image[pageNo].complete == false) {
+				complete = false;
+			}
+
+			pageNo++;
+		}
 	}
 
 	if (complete == true) {
@@ -416,7 +540,13 @@ function _Resize() {
 			$scrollX.style.width =  scrollWidth + "px";
 			$scrollX.style.display = "block";
 
-			$barX.style.width = parseInt(stageWidth * scrollWidth / pageWidth) + "px";
+			var barSize = parseInt(stageWidth * scrollWidth / pageWidth);
+
+			if (barSize < 50) {
+				barSize = 50;
+			}
+
+			$barX.style.width = barSize + "px";
 			$barX.style.marginLeft = -parseInt(left * scrollWidth / pageWidth) + "px";
 		}
 		else {
@@ -429,7 +559,13 @@ function _Resize() {
 			$scrollY.style.height = scrollHeight + "px";
 			$scrollY.style.display = "block";
 
-			$barY.style.height = parseInt(stageHeight * scrollHeight / pageHeight) + "px";
+			var barSize = parseInt(stageHeight * scrollHeight / pageHeight);
+
+			if (barSize < 50) {
+				barSize = 50;
+			}
+
+			$barY.style.height = barSize + "px";
 			$barY.style.marginTop = -parseInt(top * scrollHeight / pageHeight) + "px";
 		}
 		else {
@@ -489,8 +625,8 @@ function _Resize() {
 
 			if (rightCanvas == undefined) {
 				rightCanvas = document.createElement("canvas");
-				rightCanvas.addEventListener("mousedown", function() {_Drag('start');});
-				rightCanvas.addEventListener("mousemove", function() {_Drag('move');});
+				rightCanvas.addEventListener("mousedown", function(event) {_Drag('start', event);});
+				rightCanvas.addEventListener("mousemove", function(event) {_Drag('move', event);});
 				rightCanvas.addEventListener("mouseup", function() {_Drag('stop');});
 
 				$2pages.appendChild(rightCanvas);
@@ -503,7 +639,7 @@ function _Resize() {
 		var leftCanvasHeight = parseInt(($rotate == 0 || $rotate == 180 ? leftImage.height : leftImage.width) * scale / leftImageScale);
 		var rightCanvasWidth = $pageCurrent < $total ? parseInt(($rotate == 0 || $rotate == 180 ? rightImage.width : rightImage.height) * scale / rightImageScale) : 0;
 		var rightCanvasHeight = $pageCurrent < $total ? parseInt(($rotate == 0 || $rotate == 180 ? rightImage.height : rightImage.width) * scale / rightImageScale) : 0;
-		var pageWidth = leftCanvasWidth + rightCanvasWidth;
+		var pageWidth = leftCanvasWidth + rightCanvasWidth + 2;
 		var pageHeight = Math.max(leftCanvasHeight, rightCanvasHeight);
 
 		$2pages.style.width = pageWidth + "px";
@@ -583,7 +719,7 @@ function _Resize() {
 				context.drawImage(rightImage, -parseInt(($rotate == 180 ? rightCanvasWidth : rightCanvasHeight) / 2), -parseInt(($rotate == 180 ? rightCanvasHeight : rightCanvasWidth) / 2), $rotate == 180 ? rightCanvasWidth : rightCanvasHeight, $rotate == 180 ? rightCanvasHeight : rightCanvasWidth);
 			}
 
-			rightCanvas.style.marginLeft = leftCanvasWidth + "px";
+			rightCanvas.style.marginLeft = (leftCanvasWidth + 2) + "px";
 			if (pageHeight > rightCanvasHeight) {
 				rightCanvas.style.marginTop = parseInt((pageHeight - rightCanvasHeight) / 2) + "px";
 			}
@@ -598,7 +734,13 @@ function _Resize() {
 			$scrollX.style.width =  scrollWidth + "px";
 			$scrollX.style.display = "block";
 
-			$barX.style.width = parseInt(stageWidth * scrollWidth / pageWidth) + "px";
+			var barSize = parseInt(stageWidth * scrollWidth / pageWidth);
+
+			if (barSize < 50) {
+				barSize = 50;
+			}
+
+			$barX.style.width = barSize + "px";
 			$barX.style.marginLeft = -parseInt(left * scrollWidth / pageWidth) + "px";
 		}
 		else {
@@ -611,7 +753,13 @@ function _Resize() {
 			$scrollY.style.height = scrollHeight + "px";
 			$scrollY.style.display = "block";
 
-			$barY.style.height = parseInt(stageHeight * scrollHeight / pageHeight) + "px";
+			var barSize = parseInt(stageHeight * scrollHeight / pageHeight);
+
+			if (barSize < 50) {
+				barSize = 50;
+			}
+
+			$barY.style.height = barSize + "px";
 			$barY.style.marginTop = -parseInt(top * scrollHeight / pageHeight) + "px";
 		}
 		else {
@@ -648,6 +796,88 @@ function _Resize() {
 	}
 	else {
 		// TODO:
+		var pageNo = $pageCurrent;
+
+		while (pageNo <= $total && document.getElementById("Page" + pageNo).offsetTop <= -$continue.offsetTop + $stage.clientHeight) {
+			var image = $image[pageNo];
+			var imageScale = $imageScale[pageNo];
+			var page = document.getElementById("Page" + pageNo);
+			var canvas = page.getElementsByTagName("canvas")[0];
+
+			if (canvas == undefined) {
+				canvas = document.createElement("canvas");
+				canvas.addEventListener("mousedown", function(event) {_Drag('start', event);});
+				canvas.addEventListener("mousemove", function(event) {_Drag('move', event);});
+				canvas.addEventListener("mouseup", function() {_Drag('stop');});
+
+				page.appendChild(canvas);
+			}
+
+			var scale = _CalcScale($pageCurrent);
+
+			var pageWidth = parseInt(($rotate == 0 || $rotate == 180 ? image.width : image.height) * scale / imageScale);
+			var pageHeight = parseInt(($rotate == 0 || $rotate == 180 ? image.height : image.width) * scale / imageScale);
+
+			page.style.width = pageWidth + "px";
+			page.style.height = pageHeight + "px";
+
+			canvas.width = pageWidth;
+			canvas.height = pageHeight;
+
+			var context = canvas.getContext("2d");
+
+			if ($rotate == 0) {
+				context.drawImage(image, 0, 0, pageWidth, pageHeight);
+			}
+			else {
+				context.translate(parseInt(pageWidth / 2), parseInt(pageHeight / 2));
+				context.rotate($rotate * Math.PI / 180);
+				context.drawImage(image, -parseInt(($rotate == 180 ? pageWidth : pageHeight) / 2), -parseInt(($rotate == 180 ? pageHeight : pageWidth) / 2), $rotate == 180 ? pageWidth : pageHeight, $rotate == 180 ? pageHeight : pageWidth);
+			}
+
+			pageNo++;
+		}
+
+		pageWidth = $continue.clientWidth;
+		pageHeight = $continue.clientHeight;
+
+		if (pageWidth > stageWidth) {
+			var scrollWidth = stageWidth - (pageHeight > stageHeight ? 15 : 10);;
+
+			$scrollX.style.width =  scrollWidth + "px";
+			$scrollX.style.display = "block";
+
+			var barSize = parseInt(stageWidth * scrollWidth / pageWidth);
+
+			if (barSize < 50) {
+				barSize = 50;
+			}
+
+			$barX.style.width = barSize + "px";
+			$barX.style.marginLeft = -parseInt(left * scrollWidth / pageWidth) + "px";
+		}
+		else {
+			$scrollX.style.display = "none";
+		}
+
+		if (pageHeight > stageHeight) {
+			var scrollHeight = stageHeight - (pageWidth > stageWidth ? 15 : 10);
+
+			$scrollY.style.height = scrollHeight + "px";
+			$scrollY.style.display = "block";
+
+			var barSize = parseInt(stageHeight * scrollHeight / pageHeight);
+
+			if (barSize < 50) {
+				barSize = 50;
+			}
+
+			$barY.style.height = barSize + "px";
+			$barY.style.marginTop = -parseInt(top * scrollHeight / pageHeight) + "px";
+		}
+		else {
+			$scrollY.style.display = "none";
+		}
 	}
 
 	if ($tocList.clientHeight > $toc.clientHeight) {
@@ -741,10 +971,14 @@ function _Keyword(type) {
 }
 
 function _Drag(action, event) {
+	var page = $pageType == "1page" ? $1page : $2pages;
+
 	if (action == "start") {
-		$dragOn = true;
-		$dragX = event.clientX;
-		$dragY = event.clientY;
+		if (page.clientWidth > $stage.clientWidth || page.clientHeight > $stage.clientHeight) {
+			$dragOn = true;
+			$dragX = event.clientX;
+			$dragY = event.clientY;
+		}
 	}
 	else if (action == "move" && $dragOn == true) {
 		var x = event.clientX - $dragX;
@@ -753,7 +987,6 @@ function _Drag(action, event) {
 		$dragX = event.clientX;
 		$dragY = event.clientY;
 
-		var page = $pageType == "1page" ? $1page : $2pages;
 		var left;
 		var top;
 
@@ -850,6 +1083,18 @@ function _Drag(action, event) {
 			$dragOn = false;
 		}
 	}
+
+	if (page.clientWidth > $stage.clientWidth || page.clientHeight > $stage.clientHeight) {
+		if ($dragOn == true) {
+			page.style.cursor = "url('/img/stage/grabbing.cur'), pointer";
+		}
+		else {
+			page.style.cursor = "url('/img/stage/grab.cur'), pointer";
+		}
+	}
+	else {
+		page.style.cursor = "default";
+	}
 }
 
 function _Wheel(target, delta) {
@@ -867,7 +1112,7 @@ function _Wheel(target, delta) {
 		scrollHeight = $scrollToc.clientHeight;
 	}
 	else {
-		content = $pageType == "1page" ? $1page : $2pages;
+		content = $pageType == "1page" ? $1page : $pageType == "2pages" ? $2pages : $continue;
 		bar = $barY;
 		areaHeight = $stage.clientHeight;
 		contentTop = content.offsetTop;
@@ -915,7 +1160,12 @@ function _CalcScale(pageNo) {
 		}
 	}
 	else {
-		// TODO:
+		if ($fillType == "height") {
+			scale = parseInt(stageHeight / ($rotate == 0 || $rotate == 180 ? $defaultHeight[1] : $defaultWidth[1]) * 100);
+		}
+		else if ($fillType == "width") {
+			scale = parseInt(stageWidth / ($rotate == 0 || $rotate == 180 ? $maxWidth : $maxHeight) * 100);
+		}
 	}
 
 	if (scale > 500) {

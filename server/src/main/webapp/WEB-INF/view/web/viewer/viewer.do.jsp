@@ -10,10 +10,15 @@
 	String viewerPageType = (String)request.getAttribute("viewerPageType");
 	String viewerFillType = (String)request.getAttribute("viewerFillType");
 	boolean viewerHqOn = (Boolean)request.getAttribute("viewerHqOn");
+
+	int maxWidth = 0;
+
+//	viewerPageType = "continue";
 %>
 <%out.clear();%><!DOCTYPE html>
 <html>
 	<head>
+		<link href="/favicon.ico" rel="shortcut icon">
 		<link href="/css/viewer.css" rel="stylesheet" type="text/css">
 	</head>
 	<body onmouseout="_Drag('conditional_stop', event);">
@@ -72,8 +77,8 @@
 			<div id="1page"></div>
 			<div id="2pages"></div>
 			<div id="Continue">
-<%for (int i = 0, size = pdfInfo.dimensionList.size(); i < size; i++) {%>
-				<div id="Page<%=i + 1%>"></div>
+<%for (int i = 0; i < pdfInfo.pages; i++) {%>
+				<div id="Page<%=i + 1%>"<%if (i > 0) {%> style="margin-top:2px;"<%}%>></div>
 <%}%>
 			</div>
 			<div id="ScrollX" class="scroll x">
