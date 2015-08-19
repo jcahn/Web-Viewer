@@ -12,8 +12,7 @@
 	boolean viewerHqOn = (Boolean)request.getAttribute("viewerHqOn");
 
 	int maxWidth = 0;
-
-//	viewerPageType = "continue";
+	int maxHeight = 0;
 %>
 <%out.clear();%><!DOCTYPE html>
 <html>
@@ -31,8 +30,8 @@
 			<input type="text" id="Current" value="1" style="width:90px;" maxlength="5" onkeydown="if (event.keyCode == 13) return Move('manual');"><p style="margin-left:-55px;font-weight:bold;">/ <%=pdfInfo.pages%></p>
 			<a href="" onclick="return Move('fast_next');"><img src="/img/menu/next.png" title="다음 페이지"></a>
 			<p class="split"></p>
-			<a href="" id="1pageButton" onclick="return PageType('1page');"><img src="/img/menu/1page.png" title="한 쪽씩 보기"></a>
-			<a href="" id="2pagesButton" onclick="return PageType('2pages');"><img src="/img/menu/2pages.png" title="두 쪽씩 보기"></a>
+			<a href="" id="SingleButton" onclick="return PageType('single');"><img src="/img/menu/single.png" title="한 쪽씩 보기"></a>
+			<a href="" id="DualButton" onclick="return PageType('dual');"><img src="/img/menu/dual.png" title="두 쪽씩 보기"></a>
 			<a href="" id="ContinueButton" onclick="return PageType('continue');"><img src="/img/menu/continue.png" title="이어서 보기"></a>
 			<p class="split"></p>
 			<a href="" id="HeightButton" onclick="return Scale('height');"><img src="/img/menu/height.png" title="세로 맞춤"></a>
@@ -74,11 +73,11 @@
 			</div>
 		</div>
 		<div id="Stage" onmousewheel="_Wheel('stage', -event.wheelDelta);">
-			<div id="1page"></div>
-			<div id="2pages"></div>
+			<div id="Single"></div>
+			<div id="Dual"></div>
 			<div id="Continue">
 <%for (int i = 0; i < pdfInfo.pages; i++) {%>
-				<div id="Page<%=i + 1%>"<%if (i > 0) {%> style="margin-top:2px;"<%}%>></div>
+				<div id="Page<%=i + 1%>"<%if (i > 0) {%> style="margin-top:10px;"<%}%>></div>
 <%}%>
 			</div>
 			<div id="ScrollX" class="scroll x">
@@ -105,8 +104,10 @@
 			var $pageType = "<%=viewerPageType%>";
 			var $hqOn = <%=viewerHqOn%>;
 			var $fillType = "<%=viewerFillType%>";
-			var $defaultHeight = [0<%for (int i = 0, size = pdfInfo.dimensionList.size(); i < size; i++) out.print("," + pdfInfo.dimensionList.get(i).height * 100 / 72);%>];
-			var $defaultWidth = [0<%for (int i = 0, size = pdfInfo.dimensionList.size(); i < size; i++) out.print("," + pdfInfo.dimensionList.get(i).width * 100 / 72);%>];
+			var $defaultWidth = [0<%for (int i = 0, size = pdfInfo.dimensionList.size(); i < size; i++) {int width = pdfInfo.dimensionList.get(i).width; out.print("," + width); if (maxWidth < width) maxWidth = width;}%>];
+			var $defaultHeight = [0<%for (int i = 0, size = pdfInfo.dimensionList.size(); i < size; i++) {int height = pdfInfo.dimensionList.get(i).height; out.print("," + height); if (maxHeight < height) maxHeight = height;}%>];
+			var $maxWidth = <%=maxWidth%>;
+			var $maxHeight = <%=maxHeight%>;
 		</script>
 		<script src="/js/viewer.js"></script>
 	</body>
