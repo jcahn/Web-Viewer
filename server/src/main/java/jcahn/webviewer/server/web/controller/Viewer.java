@@ -37,7 +37,6 @@ public class Viewer {
 
 		response.reset();
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-		response.setHeader("Expires", "0");
 
 		model.addAttribute("info", pdf.info(id));
 		model.addAttribute("viewerPageType", this.viewerPageType);

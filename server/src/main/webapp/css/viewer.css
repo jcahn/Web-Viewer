@@ -17,7 +17,6 @@ img {
 	border:0;
 }
 #MenuBar {
-	/*background-color:rgb(43,43,45);*/
 	background-color:rgb(220,220,222);
 	height:40px;
 	overflow:hidden;
@@ -69,6 +68,7 @@ img {
 #Toc {
 	background-color:rgb(234,234,235);
 	border-right:1px solid rgb(0,163,224);
+	display:none;
 	overflow:hidden;
 	padding:5px;
 	position:absolute;
@@ -117,17 +117,28 @@ img {
 	overflow:hidden;
 	position:absolute;
 }
-#Stage #1page {
-	display:none;
-}
-#Stage #2pages {
-	display:none;
-}
-#Stage #continue {
-/*	display:none;*/
-}
 #Stage canvas {
-	position:absolute;
+	display:block;
+}
+#Stage #Single {
+	display:none;
+	margin-left:auto;
+	margin-right:auto;
+}
+#Stage #Dual {
+	display:none;
+	margin-left:auto;
+	margin-right:auto;
+}
+#Stage #Dual canvas {
+	float:left;
+}
+#Stage #Continue {
+	display:none;
+}
+#Stage #Continue div {
+	margin-left:auto;
+	margin-right:auto;
 }
 #Stage .scroll {
 	display:none;

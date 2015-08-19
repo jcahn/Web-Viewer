@@ -5,11 +5,9 @@ import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
-
 import jcahn.webviewer.server.core.Dimension;
 import jcahn.webviewer.server.core.PdfInfo;
 import jcahn.webviewer.server.core.Toc;
-
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -25,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class Pdf {
 
 	@Autowired
-	Storage storage;
+	private Storage storage;
 
 	@Value("#{properties['bin.mutool.path']}")
 	private String mutoolPath;
@@ -65,13 +63,13 @@ public class Pdf {
 					break;
 				}
 
-				if (line.startsWith("<MediaBox ")) {
+				if (line.startsWith("<CropBox ") || line.startsWith("<TrimBox ")) {
 					String[] tokenList = line.split(" ");
 
 					Dimension dimension = new Dimension();
 
-					dimension.width = (int)(Double.parseDouble(tokenList[3].replaceAll("\"", "").substring(2)) - Double.parseDouble(tokenList[1].replaceAll("\"", "").substring(2)));
-					dimension.height = (int)(Double.parseDouble(tokenList[4].replaceAll("\"", "").substring(2)) - Double.parseDouble(tokenList[2].replaceAll("\"", "").substring(2)));
+					dimension.width = (int)Math.ceil((Double.parseDouble(tokenList[3].replaceAll("\"", "").substring(2)) - Double.parseDouble(tokenList[1].replaceAll("\"", "").substring(2))) * 100 / 72);
+					dimension.height = (int)Math.ceil((Double.parseDouble(tokenList[4].replaceAll("\"", "").substring(2)) - Double.parseDouble(tokenList[2].replaceAll("\"", "").substring(2))) * 100 / 72);
 
 					info.pages++;
 					info.dimensionList.add(dimension);

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class Converter {
 
 	@Autowired
-	Storage storage;
+	private Storage storage;
 
 	@Value("#{properties['bin.mudraw.path']}")
 	private String mudrawPath;
@@ -170,8 +170,8 @@ public class Converter {
 		String[] token = geometry.split("x");
 		Dimension dimension = new Dimension();
 
-		dimension.width = Integer.parseInt(token[0]) / 3;
-		dimension.height = Integer.parseInt(token[1]) / 3;
+		dimension.width = (int)Math.ceil(Integer.parseInt(token[0]) / 3.0);
+		dimension.height = (int)Math.ceil(Integer.parseInt(token[1]) / 3.0);
 
 		this.logger.debug("dimension: " + dimension.width + "x" + dimension.height);
 
@@ -188,8 +188,8 @@ public class Converter {
 		}
 
 		Dimension dimension = this.dimension(filePath);
-		int width = dimension.width * scale / 100;
-		int height = dimension.height * scale / 100;
+		int width = (int)Math.ceil(dimension.width * scale / 100.0);
+		int height = (int)Math.ceil(dimension.height * scale / 100.0);
 
 		ArrayList<String> command = new ArrayList<String>();
 
@@ -197,6 +197,8 @@ public class Converter {
 		command.add(filePath);
 		command.add("-resize");
 		command.add(width + "x" + height);
+		command.add("-quality");
+		command.add("100");
 		command.add("-");
 
 		this.logger.debug("command: " + command.toString());

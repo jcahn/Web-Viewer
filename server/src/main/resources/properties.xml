@@ -15,7 +15,7 @@
 	<entry key="max.waiting.millis">30000</entry>
 
 	<!-- 뷰어 기본 설정 -->
-	<entry key="viewer.page.type">1page</entry>
+	<entry key="viewer.page.type">continue</entry>
 	<entry key="viewer.fill.type">height</entry>
 	<entry key="viewer.hq.on">true</entry>
 </properties>

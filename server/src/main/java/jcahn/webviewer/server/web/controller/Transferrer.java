@@ -2,8 +2,9 @@ package jcahn.webviewer.server.web.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import jcahn.webviewer.server.core.PdfInfo;
 import jcahn.webviewer.server.core.service.Converter;
-import jcahn.webviewer.server.core.service.Storage;
+import jcahn.webviewer.server.core.service.Pdf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class Transferrer {
 
 	@Autowired
-	Converter converter;
+	private Converter converter;
 
 	@Autowired
-	Storage storage;
+	private Pdf pdf;
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -30,6 +31,18 @@ public class Transferrer {
 		String scale = request.getParameter("s");
 
 		logger.debug("파라미터: [id-" + id + ", p-" + page + ", scale-" + scale + "]");
+
+		try {
+			PdfInfo info = pdf.info(id);
+			int p = Integer.parseInt(page);
+
+			if (p < 1 || p > info.pages) {
+				page = "1";
+			}
+		}
+		catch (Exception e) {
+			page = "1";
+		};
 
 		String filePath = converter.convert(id, page);
 
@@ -47,7 +60,6 @@ public class Transferrer {
 		response.setHeader("Content-Disposition", "attatchment; filename = " + filePath.substring(filePath.lastIndexOf("/") + 1));
 		response.setHeader("Content-Transfer-Encoding", "binary");
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-		response.setHeader("Expires", "0");
 
 		try {
 			converter.resize(filePath, Integer.parseInt(scale), response.getOutputStream());
@@ -64,6 +76,18 @@ public class Transferrer {
 		String page = request.getParameter("p");
 
 		logger.debug("파라미터: [id-" + id + ", p-" + page + "]");
+
+		try {
+			PdfInfo info = pdf.info(id);
+			int p = Integer.parseInt(page);
+
+			if (p < 1 || p > info.pages) {
+				page = "1";
+			}
+		}
+		catch (Exception e) {
+			page = "1";
+		};
 
 		converter.convert(id, page);
 
